@@ -36,8 +36,6 @@ class Config:
         self.logfile_path = Path(self.project_root_path, 'outputs', 'logs', 'log.txt')
         self.logging_setup()
 
-        # self.logger.info('started')
-
     def logging_setup(
             self,
     ):
@@ -63,3 +61,8 @@ class Config:
         # Add Handlers
         self.logger.addHandler(logging_file_handler)
         self.logger.addHandler(logging_stdio_handler)
+
+        # Check Log File Size
+        large_log_file_size = 30_000_000
+        if self.logfile_path.stat().st_size > large_log_file_size:
+            self.logger.warning(f'log file size >{large_log_file_size/1_000_000} MB')
