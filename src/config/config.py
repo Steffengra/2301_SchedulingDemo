@@ -7,6 +7,13 @@ from sys import (
     stdout,
 )
 
+from src.data.user import (
+    UserNormal,
+    UserAmbulance,
+)
+
+# vergleich verschiedener ziele? maxminfair, max throughput, prio
+
 
 class Config:
     def __init__(
@@ -19,9 +26,10 @@ class Config:
 
         # SCHEDULING SIM PARAMETERS
         self.num_users: dict = {
-            'normal': 1,
-            'ambulance': 1,
+            UserNormal: 2,
+            UserAmbulance: 1,
         }
+        self.total_resource_slots: int = 5
 
         # LEARNING PARAMETERS
 
@@ -38,7 +46,7 @@ class Config:
 
     def logging_setup(
             self,
-    ):
+    ) -> None:
         logging_formatter = logging.Formatter(
             '{asctime} : {levelname:8s} : {name:30} : {funcName:20s} :: {message}',
             datefmt='%Y-%m-%d %H:%M:%S',
