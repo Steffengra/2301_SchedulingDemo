@@ -1,10 +1,5 @@
 
-###### UNDER CONSTRUCTION
-
-#### Libraries you should use:
-- logging
-- unittests
-
+# UNDER CONSTRUCTION
 
 #### Folder Structure
 
