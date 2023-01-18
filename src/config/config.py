@@ -6,6 +6,9 @@ from pathlib import (
 from sys import (
     stdout,
 )
+from numpy.random import (
+    default_rng,
+)
 
 from src.data.user import (
     UserNormal,
@@ -13,6 +16,7 @@ from src.data.user import (
 )
 
 # vergleich verschiedener ziele? maxminfair, max throughput, prio
+# TODO: Figure out how to set priority
 
 
 class Config:
@@ -21,21 +25,41 @@ class Config:
     ) -> None:
 
         # GENERAL
-        self._logging_level_stdio = logging.INFO  # DEBUG < INFO < WARNING < ERROR < CRITICAL
+        self._logging_level_stdio = logging.DEBUG  # DEBUG < INFO < WARNING < ERROR < CRITICAL
         self._logging_level_file = logging.INFO
 
         # SCHEDULING SIM PARAMETERS
+        self.snr_ue_linear: float = 1
+        self.job_creation_probability: float = 1.0
         self.num_users: dict = {
             UserNormal: 2,
             UserAmbulance: 1,
         }
+        self.max_job_size_resource_slots: dict = {
+            'Normal': 5,
+            'Ambulance': 5,
+        }
+        self.probs_new_job: dict = {
+            'Normal': 0.8,
+            'Ambulance': 0.5,
+        }
+        self.rayleigh_fading_scale: float = 1e-8
         self.total_resource_slots: int = 5
+
+        self.reward_weightings = {
+            'sum rate': 1.0,
+            'priority missed': 1.0,
+            'fairness': 1.0,
+        }
 
         # LEARNING PARAMETERS
 
 
         # OTHER SETUP
         self.project_root_path = Path(__file__).parent.parent.parent
+
+        # rng
+        self.rng = default_rng(seed=None)
 
         # logging
         #   get new sub loggers via logger.getChild(__name__) to improve messaging
