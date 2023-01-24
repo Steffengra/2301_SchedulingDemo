@@ -63,15 +63,36 @@ class SchedulingData:
 
     def step(
             self,
-            percentage_allocation_solution,
+            percentage_allocation_solution: list[float],
     ) -> tuple[dict, dict]:
 
-        # figure out how many resource slots each user actually gets based on allocation solution
-        allocated_slots_per_ue = {
-            0: 1,
-            1: 1,
-            2: 1,
+        # Convert percentage allocation into slot allocation, but at most as many res as requested
+        slot_allocation_solution = [
+            min(
+                round(percentage_allocation_solution[ue_id] * self.resource_grid.total_resource_slots),
+                self.users[ue_id].job.size_resource_slots
+            )
+            for ue_id in range(sum(self.config.num_users.values()))
+        ]
+        # Check if the rounding has resulted in more resources distributed than available
+        if sum(slot_allocation_solution) > self.resource_grid.total_resource_slots:
+            # if so, remove one resource from a random user
+            while sum(slot_allocation_solution) > self.resource_grid.total_resource_slots:
+                random_user_id = self.rng.integers(0, sum(self.config.num_users.values()))
+                if slot_allocation_solution[random_user_id] > 0:
+                    slot_allocation_solution[random_user_id] -= 1
+
+        # prepare the allocated slots per ue for metrics calculation
+        allocated_slots_per_ue: dict = {
+                ue_id: slot_allocation_solution[ue_id]
+                for ue_id in range(sum(self.config.num_users.values()))
         }
+
+        # logging
+        self.logger.debug(allocated_slots_per_ue)
+        if sum(allocated_slots_per_ue.values()) > self.resource_grid.total_resource_slots:
+            self.logger.error('ALAAARM too many resources allocated')
+            exit()
 
         # calculate sum rate
         sum_rate_capacity_kbit_per_second: float = 0.0
@@ -99,12 +120,13 @@ class SchedulingData:
                 1 + (std(weighted_slots_per_ue) / mean(weighted_slots_per_ue))**2
         )
 
-        # transform to [0.. 1]?
+        # transform fairness score to [0.. 1]?
         fairness_score = (fairness_score - 1/len(self.users)) / (1 - 1/len(self.users))
 
         self.logger.debug(f'weighted slots per ue {weighted_slots_per_ue}')
         self.logger.debug(f'fairness_score {fairness_score}')
 
+        # prepare reward metric
         reward = (
             + self.config.reward_weightings['sum rate'] * sum_rate_capacity_kbit_per_second
             + self.config.reward_weightings['priority missed'] * priority_jobs_missed_counter
