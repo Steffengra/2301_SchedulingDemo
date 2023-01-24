@@ -46,7 +46,6 @@ class _User:
         fading = 1
         self.power_gain = fading ** 2
 
-
         self.logger.debug(f'User {self.user_id} type {self.user_type} power gain updated to {self.power_gain}')
 
     def generate_job(
@@ -56,6 +55,8 @@ class _User:
         size_resource_slots = self.rng.integers(low=1, high=self.max_job_size_resource_slots + 1)
         job = Job(size_resource_slots=size_resource_slots)
         self.job = job
+
+        self.logger.debug(f'User {self.user_id} type {self.user_type} new job size {size_resource_slots}')
 
 
 class UserNormal(_User):
