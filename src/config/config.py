@@ -30,7 +30,6 @@ class Config:
 
         # SCHEDULING SIM PARAMETERS
         self.snr_ue_linear: float = 1
-        self.job_creation_probability: float = 1.0
         self.num_users: dict = {
             UserNormal: 2,
             UserAmbulance: 1,
@@ -44,7 +43,7 @@ class Config:
             'Ambulance': 0.5,
         }
         self.rayleigh_fading_scale: float = 1e-8
-        self.total_resource_slots: int = 5
+        self.total_resource_slots: int = 10
 
         self.reward_weightings = {
             'sum rate': 1.0,
