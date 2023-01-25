@@ -51,8 +51,7 @@ class SchedulingData:
     ) -> None:
 
         for user in self.users.values():
-            if self.rng.random() < self.config.job_creation_probability:
-                user.generate_job()
+            user.generate_job()
 
     def update_user_power_gain(
             self,
@@ -67,10 +66,14 @@ class SchedulingData:
     ) -> tuple[dict, dict]:
 
         # Convert percentage allocation into slot allocation, but at most as many res as requested
+        requested_slots_per_ue = [
+            self.users[ue_id].job.size_resource_slots
+            for ue_id in range(sum(self.config.num_users.values()))
+        ]
         slot_allocation_solution = [
             min(
                 round(percentage_allocation_solution[ue_id] * self.resource_grid.total_resource_slots),
-                self.users[ue_id].job.size_resource_slots
+                requested_slots_per_ue[ue_id]
             )
             for ue_id in range(sum(self.config.num_users.values()))
         ]
@@ -89,7 +92,7 @@ class SchedulingData:
         }
 
         # logging
-        self.logger.debug(allocated_slots_per_ue)
+        self.logger.debug(f'allocated slots per ue: {allocated_slots_per_ue}')
         if sum(allocated_slots_per_ue.values()) > self.resource_grid.total_resource_slots:
             self.logger.error('ALAAARM too many resources allocated')
             exit()
@@ -116,6 +119,11 @@ class SchedulingData:
         #  result ranges from 1/n (worst) to 1.0 (best)
         power_gains = [user.power_gain for user in self.users.values()]
         weighted_slots_per_ue = multiply(list(allocated_slots_per_ue.values()), power_gains)
+        #  middle out jobs that requested little, so they don't ruin fairness even though they didn't want more
+        for ue_id in range(len(weighted_slots_per_ue)):
+            if requested_slots_per_ue[ue_id] <= allocated_slots_per_ue[ue_id]:
+                weighted_slots_per_ue[ue_id] = mean(weighted_slots_per_ue)
+
         fairness_score = 1 / (
                 1 + (std(weighted_slots_per_ue) / mean(weighted_slots_per_ue))**2
         )
@@ -123,7 +131,7 @@ class SchedulingData:
         # transform fairness score to [0.. 1]?
         fairness_score = (fairness_score - 1/len(self.users)) / (1 - 1/len(self.users))
 
-        self.logger.debug(f'weighted slots per ue {weighted_slots_per_ue}')
+        self.logger.debug(f'channel weighted slots per ue {weighted_slots_per_ue}')
         self.logger.debug(f'fairness_score {fairness_score}')
 
         # prepare reward metric
