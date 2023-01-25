@@ -41,9 +41,11 @@ class _User:
             self,
     ) -> None:
 
+        # TODO: Figure out what fading we want
+
         # fading = self.rng.rayleigh(scale=self.rayleigh_fading_scale)
-        # fading = self.rng.integers(low=1, high=1)
-        fading = 1
+        fading = self.rng.integers(low=1, high=5)
+        # fading = 1
         self.power_gain = fading ** 2
 
         self.logger.debug(f'User {self.user_id} type {self.user_type} power gain updated to {self.power_gain}')
@@ -52,11 +54,15 @@ class _User:
             self,
     ) -> None:
 
-        size_resource_slots = self.rng.integers(low=1, high=self.max_job_size_resource_slots + 1)
-        job = Job(size_resource_slots=size_resource_slots)
-        self.job = job
+        if self.rng.random() < self.prob_new_job:
+            size_resource_slots = self.rng.integers(low=1, high=self.max_job_size_resource_slots + 1)
+            job = Job(size_resource_slots=size_resource_slots)
+            self.job = job
 
-        self.logger.debug(f'User {self.user_id} type {self.user_type} new job size {size_resource_slots}')
+            self.logger.debug(f'User {self.user_id} type {self.user_type} new job size {size_resource_slots}')
+        else:
+            self.logger.debug(f'User {self.user_id} type {self.user_type} no new job')
+
 
 
 class UserNormal(_User):
