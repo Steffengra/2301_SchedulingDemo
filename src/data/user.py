@@ -34,6 +34,7 @@ class _User:
 
         self.job = None
         self.prob_new_job: float = probs_new_job[self.user_type]
+        self.job_prio: bool = False
 
         self.logger.info(f'User {user_id} type {user_type} initialized')
 
@@ -57,12 +58,13 @@ class _User:
         if self.rng.random() < self.prob_new_job:
             size_resource_slots = self.rng.integers(low=1, high=self.max_job_size_resource_slots + 1)
             job = Job(size_resource_slots=size_resource_slots)
+            if self.job_prio:
+                job.priority = 1
             self.job = job
 
             self.logger.debug(f'User {self.user_id} type {self.user_type} new job size {size_resource_slots}')
         else:
             self.logger.debug(f'User {self.user_id} type {self.user_type} no new job')
-
 
 
 class UserNormal(_User):
@@ -109,3 +111,4 @@ class UserAmbulance(_User):
             rng=rng,
             parent_logger=parent_logger,
         )
+        self.job_prio = True
