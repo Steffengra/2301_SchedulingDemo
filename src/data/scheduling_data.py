@@ -91,7 +91,6 @@ class SchedulingData:
                 for ue_id in range(sum(self.config.num_users.values()))
         }
 
-        # logging
         self.logger.debug(f'allocated slots per ue: {allocated_slots_per_ue}')
         if sum(allocated_slots_per_ue.values()) > self.resource_grid.total_resource_slots:
             self.logger.error('ALAAARM too many resources allocated')
@@ -110,6 +109,7 @@ class SchedulingData:
         priority_jobs_missed_counter: int = 0
         for user_id in allocated_slots_per_ue.keys():
             if self.users[user_id].job.priority == 1:
+                self.logger.debug(f'Priority job requested {self.users[user_id].job.size_resource_slots} received {allocated_slots_per_ue[user_id]}')
                 if allocated_slots_per_ue[user_id] < self.users[user_id].job.size_resource_slots:
                     priority_jobs_missed_counter += 1
 
