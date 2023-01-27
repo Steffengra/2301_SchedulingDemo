@@ -62,7 +62,7 @@ class SoftActorCritic:
             for value_network_id in range(2):
                 self.value_networks[value_network_id] = {name: ValueNetwork(**value_network_args)
                                                          for name in ['primary', 'target']}
-            self.policy_network = PolicyNetworkSoft(size_state, **policy_network_args)
+            self.policy_network = PolicyNetworkSoft(num_actions=num_actions, **policy_network_args)
 
             # INITIALIZE NETWORKS
             #  Assign optimizer, initialize primary weights, and copy weights to target networks
@@ -119,9 +119,9 @@ class SoftActorCritic:
             self,
             state,
     ) -> ndarray:
-        actions, _ = self.policy_network.get_action_and_log_prob_density(state=state)
+        _, _, actions_softmax = self.policy_network.get_action_and_log_prob_density(state=state)
 
-        return actions.numpy()
+        return actions_softmax.numpy().flatten()
 
     def add_experience(
             self,
