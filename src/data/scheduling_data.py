@@ -68,27 +68,27 @@ class SchedulingData:
         # Convert percentage allocation into slot allocation, but at most as many res as requested
         requested_slots_per_ue = [
             self.users[ue_id].job.size_resource_slots
-            for ue_id in range(sum(self.config.num_users.values()))
+            for ue_id in range(len(self.config.num_users))
         ]
         slot_allocation_solution = [
             min(
                 round(percentage_allocation_solution[ue_id] * self.resource_grid.total_resource_slots),
                 requested_slots_per_ue[ue_id]
             )
-            for ue_id in range(sum(self.config.num_users.values()))
+            for ue_id in range(len(self.config.num_users))
         ]
         # Check if the rounding has resulted in more resources distributed than available
         if sum(slot_allocation_solution) > self.resource_grid.total_resource_slots:
             # if so, remove one resource from a random user
             while sum(slot_allocation_solution) > self.resource_grid.total_resource_slots:
-                random_user_id = self.rng.integers(0, sum(self.config.num_users.values()))
+                random_user_id = self.rng.integers(0, len(self.config.num_users))
                 if slot_allocation_solution[random_user_id] > 0:
                     slot_allocation_solution[random_user_id] -= 1
 
         # prepare the allocated slots per ue for metrics calculation
         allocated_slots_per_ue: dict = {
                 ue_id: slot_allocation_solution[ue_id]
-                for ue_id in range(sum(self.config.num_users.values()))
+                for ue_id in range(len(self.config.num_users))
         }
 
         self.logger.debug(f'allocated slots per ue: {allocated_slots_per_ue}')
