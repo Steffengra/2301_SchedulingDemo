@@ -64,6 +64,7 @@ class _User:
 
             self.logger.debug(f'User {self.user_id} type {self.user_type} new job size {size_resource_slots}')
         else:
+            self.job = None  # clear previous job
             self.logger.debug(f'User {self.user_id} type {self.user_type} no new job')
 
 
