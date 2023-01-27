@@ -25,11 +25,8 @@ class Config:
             self,
     ) -> None:
 
-        # TODO: FIX THIS
-        self.size_state: int = 5
-
         # GENERAL-------------------------------------------------------------------------------------------------------
-        self._logging_level_stdio = logging.INFO  # DEBUG < INFO < WARNING < ERROR < CRITICAL
+        self._logging_level_stdio = logging.DEBUG  # DEBUG < INFO < WARNING < ERROR < CRITICAL
         self._logging_level_file = logging.INFO
 
         # SCHEDULING SIM PARAMETERS-------------------------------------------------------------------------------------
@@ -47,7 +44,7 @@ class Config:
             'Ambulance': 0.5,
         }
         self.rayleigh_fading_scale: float = 1e-8
-        self.total_resource_slots: int = 10
+        self.total_resource_slots: int = 5
 
         self.reward_weightings = {
             'sum rate': 1.0,
@@ -116,12 +113,14 @@ class Config:
         self.__logging_setup()
 
         # Collected args
+        self.size_state: int = 3 * sum(self.num_users.values())
+
         self.soft_actor_critic_args: dict = {
             'rng': self.rng,
             'parent_logger': self.logger,
             **self.training_args,
             'experience_buffer_args': {'rng': self.rng, **self.experience_buffer_args},
-            'network_args': {**self.network_args, 'size_state': self.size_state, 'num_actions': len(self.num_users)},
+            'network_args': {**self.network_args, 'size_state': self.size_state, 'num_actions': sum(self.num_users.values())},
         }
 
     def __logging_setup(
