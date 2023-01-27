@@ -134,6 +134,8 @@ class PolicyNetworkSoft(tf.keras.Model, ABC):
         self.output_layer_means = tf.keras.layers.Dense(units=num_actions, dtype=tf.float32)
         self.output_layer_log_stds = tf.keras.layers.Dense(units=num_actions, dtype=tf.float32)
 
+        self.output_layer_softmax = tf.keras.layers.Dense(units=num_actions, dtype=tf.float32, activation='softmax')
+
     @tf.function
     def call(
             self,
@@ -160,7 +162,7 @@ class PolicyNetworkSoft(tf.keras.Model, ABC):
     def get_action_and_log_prob_density(
             self,
             state,
-    ) -> tuple[tf.Tensor, tf.Tensor]:
+    ) -> tuple[tf.Tensor, tf.Tensor, tf.Tensor]:
         if state.shape.ndims == 1:
             state = tf.expand_dims(state, axis=0)
 
@@ -172,7 +174,10 @@ class PolicyNetworkSoft(tf.keras.Model, ABC):
         #  Or look into multivariate gaussian prob
         action_log_prob_densities = distributions.log_prob(actions)
 
+        actions_softmax = self.output_layer_softmax(actions)
+
         return (
             actions,
             action_log_prob_densities,
+            actions_softmax,
         )
