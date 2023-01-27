@@ -1,7 +1,11 @@
 
 from numpy import (
-    log2,
+    ndarray,
+    zeros,
     multiply,
+    round as np_round,
+    minimum,
+    log2,
     mean,
     std,
 )
@@ -60,35 +64,55 @@ class SchedulingData:
         for user in self.users.values():
             user.update_power_gain()
 
+    def get_state(
+            self,
+    ) -> ndarray:
+
+        # per user: channel conditions, packets, priority
+        state_length = 3 * len(self.users)
+        state = zeros(state_length, dtype='float32')
+
+        state[0:len(self.users)] = [user.power_gain for user in self.users.values()]
+        state[len(self.users):2*len(self.users)] = [user.job.size_resource_slots if user.job else 0
+                                                    for user in self.users.values()]
+        state[2*len(self.users):3*len(self.users)] = [user.job.priority if user.job else 0
+                                                      for user in self.users.values()]
+
+        self.logger.debug(f'Current state is {state}')
+
+        return state
+
     def step(
             self,
-            percentage_allocation_solution: list[float],
+            percentage_allocation_solution: ndarray,
     ) -> tuple[dict, dict]:
 
         # Convert percentage allocation into slot allocation, but at most as many res as requested
         requested_slots_per_ue = [
-            self.users[ue_id].job.size_resource_slots
-            for ue_id in range(len(self.config.num_users))
+            self.users[ue_id].job.size_resource_slots if self.users[ue_id].job else 0
+            for ue_id in range(len(self.users))
         ]
+
         slot_allocation_solution = [
-            min(
-                round(percentage_allocation_solution[ue_id] * self.resource_grid.total_resource_slots),
-                requested_slots_per_ue[ue_id]
+            minimum(
+                np_round(percentage_allocation_solution[ue_id] * self.resource_grid.total_resource_slots),
+                requested_slots_per_ue[ue_id],
+                dtype='float32'
             )
-            for ue_id in range(len(self.config.num_users))
+            for ue_id in range(len(self.users))
         ]
         # Check if the rounding has resulted in more resources distributed than available
         if sum(slot_allocation_solution) > self.resource_grid.total_resource_slots:
             # if so, remove one resource from a random user
             while sum(slot_allocation_solution) > self.resource_grid.total_resource_slots:
-                random_user_id = self.rng.integers(0, len(self.config.num_users))
+                random_user_id = self.rng.integers(0, len(self.users))
                 if slot_allocation_solution[random_user_id] > 0:
                     slot_allocation_solution[random_user_id] -= 1
 
         # prepare the allocated slots per ue for metrics calculation
         allocated_slots_per_ue: dict = {
                 ue_id: slot_allocation_solution[ue_id]
-                for ue_id in range(len(self.config.num_users))
+                for ue_id in range(len(self.users))
         }
 
         self.logger.debug(f'allocated slots per ue: {allocated_slots_per_ue}')
@@ -108,10 +132,11 @@ class SchedulingData:
         # see how many priority==1 jobs were not fully transmitted
         priority_jobs_missed_counter: int = 0
         for user_id in allocated_slots_per_ue.keys():
-            if self.users[user_id].job.priority == 1:
-                self.logger.debug(f'Priority job requested {self.users[user_id].job.size_resource_slots} received {allocated_slots_per_ue[user_id]}')
-                if allocated_slots_per_ue[user_id] < self.users[user_id].job.size_resource_slots:
-                    priority_jobs_missed_counter += 1
+            if self.users[user_id].job:
+                if self.users[user_id].job.priority == 1:
+                    self.logger.debug(f'Priority job requested {self.users[user_id].job.size_resource_slots} received {allocated_slots_per_ue[user_id]}')
+                    if allocated_slots_per_ue[user_id] < self.users[user_id].job.size_resource_slots:
+                        priority_jobs_missed_counter += 1
 
         self.logger.debug(f'prio jobs missed {priority_jobs_missed_counter}')
 
