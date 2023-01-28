@@ -80,7 +80,7 @@ class SchedulingData:
 
         self.logger.debug(f'Current state is {state}')
 
-        return state
+        return state.astype('float32')
 
     def step(
             self,
@@ -121,13 +121,13 @@ class SchedulingData:
             exit()
 
         # calculate sum rate
-        sum_rate_capacity_kbit_per_second: float = 0.0
+        sum_rate_capacity_bit_per_second: float = 0.0
         for user_id, allocated_slots in allocated_slots_per_ue.items():
-            sum_rate_capacity_kbit_per_second += (
-                allocated_slots * log2(1 + self.users[user_id].power_gain * self.config.snr_ue_linear) / 1_000
+            sum_rate_capacity_bit_per_second += (
+                allocated_slots * log2(1 + self.users[user_id].power_gain * self.config.snr_ue_linear)
             )
 
-        self.logger.debug(f'sum rate {sum_rate_capacity_kbit_per_second}')
+        self.logger.debug(f'sum rate {sum_rate_capacity_bit_per_second}')
 
         # see how many priority==1 jobs were not fully transmitted
         priority_jobs_missed_counter: int = 0
@@ -149,9 +149,16 @@ class SchedulingData:
             if requested_slots_per_ue[ue_id] <= allocated_slots_per_ue[ue_id]:
                 weighted_slots_per_ue[ue_id] = mean(weighted_slots_per_ue)
 
-        fairness_score = 1 / (
-                1 + (std(weighted_slots_per_ue) / mean(weighted_slots_per_ue))**2
-        )
+        if sum(weighted_slots_per_ue) > 0:
+            fairness_score = 1 / (
+                    1 + (std(weighted_slots_per_ue) / mean(weighted_slots_per_ue))**2
+            )
+            fairness_score = fairness_score.astype('float32')
+        else:
+            if sum(requested_slots_per_ue) == 0:
+                fairness_score = 1.0
+            else:
+                fairness_score = 0.0
 
         # transform fairness score to [0.. 1]?
         fairness_score = (fairness_score - 1/len(self.users)) / (1 - 1/len(self.users))
@@ -161,15 +168,15 @@ class SchedulingData:
 
         # prepare reward metric
         reward = (
-            + self.config.reward_weightings['sum rate'] * sum_rate_capacity_kbit_per_second
+            + self.config.reward_weightings['sum rate'] * sum_rate_capacity_bit_per_second
             + self.config.reward_weightings['priority missed'] * priority_jobs_missed_counter
             + self.config.reward_weightings['fairness'] * fairness_score
-        )
+        ).astype('float32')
 
         reward_components = {
-            'sum rate': sum_rate_capacity_kbit_per_second,
+            'sum rate': sum_rate_capacity_bit_per_second,
             'prio jobs missed': priority_jobs_missed_counter,
-            'weighted slots per ue': weighted_slots_per_ue,
+            'weighted slots per ue': weighted_slots_per_ue.astype('float32'),
             'fairness score': fairness_score,
         }
 
