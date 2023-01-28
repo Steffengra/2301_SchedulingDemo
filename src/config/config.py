@@ -6,6 +6,9 @@ from pathlib import (
 from sys import (
     stdout,
 )
+from numpy import (
+    ceil,
+)
 from numpy.random import (
     default_rng,
 )
@@ -26,11 +29,16 @@ class Config:
     ) -> None:
 
         # GENERAL-------------------------------------------------------------------------------------------------------
-        self._logging_level_stdio = logging.DEBUG  # DEBUG < INFO < WARNING < ERROR < CRITICAL
-        self._logging_level_file = logging.INFO
+        self._logging_level_stdio = logging.INFO  # DEBUG < INFO < WARNING < ERROR < CRITICAL
+        self._logging_level_file = logging.WARNING
+        self._logging_level_tensorflow = logging.INFO
 
         # SCHEDULING SIM PARAMETERS-------------------------------------------------------------------------------------
+        self.num_episodes: int = 1
+        self.num_steps_per_episode: int = 50_000
+
         self.snr_ue_linear: float = 1
+        self.total_resource_slots: int = 5
         self.num_users: dict = {
             UserNormal: 2,
             UserAmbulance: 1,
@@ -44,15 +52,18 @@ class Config:
             'Ambulance': 0.5,
         }
         self.rayleigh_fading_scale: float = 1e-8
-        self.total_resource_slots: int = 5
 
         self.reward_weightings = {
             'sum rate': 1.0,
-            'priority missed': 1.0,
-            'fairness': 1.0,
+            'priority missed': 0.0,
+            'fairness': 0.0,
         }
 
         # LEARNING PARAMETERS-------------------------------------------------------------------------------------------
+        self.exploration_noise_decay_start_percent: float = 0.0  # when to start decay in %
+        self.exploration_noise_decay_threshold_percent: float = 0.5  # when to decay to 0 in %
+        self.exploration_noise_momentum_initial: float = 1.0
+
         self.experience_buffer_args: dict = {
             'buffer_size': 10_000,  # Num of samples held, FIFO
             'priority_scale_alpha': 0.0,  # alpha in [0, 1], alpha=0 uniform sampling, 1 is fully prioritized sampling
@@ -89,7 +100,8 @@ class Config:
             'training_batch_size': 256,  # Num of experiences sampled in one training step
             'training_target_update_momentum_tau': 1e-2,  # How much of the primary network copy to target networks
             'future_reward_discount_gamma': 0.0,  # Exponential future reward discount for stability
-
+        }
+        self.training_args_soft_actor_critic: dict = {
             'entropy_scale_alpha_initial': 1.0,  # Weights the 'soft' entropy penalty against the td error
             'target_entropy': 1.0,  # SAC heuristic impl. = product of action_space.shape
             'entropy_scale_optimizer': tf.keras.optimizers.SGD,
@@ -119,9 +131,32 @@ class Config:
             'rng': self.rng,
             'parent_logger': self.logger,
             **self.training_args,
+            **self.training_args_soft_actor_critic,
             'experience_buffer_args': {'rng': self.rng, **self.experience_buffer_args},
-            'network_args': {**self.network_args, 'size_state': self.size_state, 'num_actions': sum(self.num_users.values())},
+            'network_args': {**self.network_args, 'size_state': self.size_state,
+                             'num_actions': sum(self.num_users.values())},
         }
+        self.td3_actor_critic_args: dict = {
+            'rng': self.rng,
+            'parent_logger': self.logger,
+            **self.training_args,
+            'experience_buffer_args': {'rng': self.rng, **self.experience_buffer_args},
+            'network_args': {**self.network_args, 'size_state': self.size_state,
+                             'num_actions': sum(self.num_users.values())},
+        }
+
+        # Arithmetic
+        self.steps_total = self.num_episodes * self.num_steps_per_episode
+        self.exploration_noise_step_start_decay: int = ceil(
+            self.exploration_noise_decay_start_percent * self.num_episodes * self.num_steps_per_episode
+        )
+        self.exploration_noise_linear_decay_per_step: float = (
+            self.exploration_noise_momentum_initial / (
+                self.exploration_noise_decay_threshold_percent * (
+                    self.num_episodes * self.num_steps_per_episode - self.exploration_noise_step_start_decay
+                )
+            )
+        )
 
     def __logging_setup(
             self,
@@ -140,10 +175,14 @@ class Config:
         logging_file_handler.setLevel(self._logging_level_file)
         logging_stdio_handler.setLevel(self._logging_level_stdio)
 
+        tensorflow_logger = tf.get_logger()
+        tensorflow_logger.setLevel(self._logging_level_tensorflow)
+
+        self.logger.setLevel(logging.NOTSET)  # set primary logger level to lowest to catch all
+
         # Set Formatting
         logging_file_handler.setFormatter(logging_formatter)
         logging_stdio_handler.setFormatter(logging_formatter)
-        self.logger.setLevel(logging.NOTSET)  # set logger level to lowest to catch all
 
         # Add Handlers
         self.logger.addHandler(logging_file_handler)
