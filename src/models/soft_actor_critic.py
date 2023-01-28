@@ -1,4 +1,7 @@
 
+from logging import (
+    Logger,
+)
 from numpy import (
     ndarray,
     concatenate as np_concatenate,
@@ -33,7 +36,7 @@ class SoftActorCritic:
     def __init__(
             self,
             rng: default_rng,
-            parent_logger,
+            parent_logger: Logger,
             future_reward_discount_gamma: float,
             entropy_scale_alpha_initial: float,
             target_entropy: float,
