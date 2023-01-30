@@ -11,8 +11,8 @@ class ConfigGUI:
     ) -> None:
         self._pre_init()
 
-        self.label_img_height_scale = 0.1
-        self.label_img_logos_height = 0.07
+        self.label_img_users_height_scale = 0.1
+        self.label_img_logos_height_scale = 0.07
         self.label_img_users_border_width = 15
 
         self.button_font = ('Arial', 50)

@@ -42,6 +42,9 @@ class App(tk.Tk):
         self.config = Config()
         self.config_gui = ConfigGUI()
 
+        self.window_width = self.winfo_screenwidth()
+        self.window_height = self.winfo_screenheight()
+
         # SIMS
         self.sim_main = SchedulingData(config=self.config)
         self.sim_0 = SchedulingData(config=self.config)
@@ -49,39 +52,40 @@ class App(tk.Tk):
 
         self.current_resource_pointer = 0
         self.resources_per_user = {
-            0: 0,
-            1: 0,
-            2: 0,
-            3: 0,
+            user_id: 0
+            for user_id in range(4)
         }
 
         # ARITHMETIC
-        window_width = self.winfo_screenwidth()
-        window_height = self.winfo_screenheight()
+        self.label_img_height = int(self.config_gui.label_img_users_height_scale * self.window_height)
+        self.logo_img_height = int(self.config_gui.label_img_logos_height_scale * self.window_height)
 
-        label_img_height = int(self.config_gui.label_img_height_scale * window_height)
-        logo_img_height = int(self.config_gui.label_img_logos_height * window_height)
+        self._gui_setup()
 
-        # GUI
+    def _gui_setup(
+            self,
+    ) -> None:
         # Frames
-        self.frame_scenario = tk.Frame(master=self, width=.5*window_width, height=.8*window_height,
+        self.frame_scenario = tk.Frame(master=self, width=.5 * self.window_width, height=.8 * self.window_height,
                                        **self.config_gui.frames_config)
         self.frame_scenario.place(relx=0.0)
 
-        self.frame_resource_grid = tk.Frame(master=self, width=.2*window_width, height=.8*window_height,
+        self.frame_resource_grid = tk.Frame(master=self, width=.2 * self.window_width, height=.8 * self.window_height,
                                             **self.config_gui.frames_config)
         self.frame_resource_grid.place(relx=0.5)
         self.frame_resource_grid.pack_propagate(False)
 
-        self.subframe_resource_grid = tk.Frame(master=self.frame_resource_grid, **self.config_gui.frames_config)  # holds all the resource blocks in center of the resource grid frame
+        # make a subframe that holds all the resources, easier to center
+        self.subframe_resource_grid = tk.Frame(master=self.frame_resource_grid,
+                                               **self.config_gui.frames_config)
         self.subframe_resource_grid.pack(expand=True)
 
-        self.frame_buttons = tk.Frame(master=self, width=.7*window_width, height=.2*window_height,
+        self.frame_buttons = tk.Frame(master=self, width=.7 * self.window_width, height=.2 * self.window_height,
                                       **self.config_gui.frames_config)
         self.frame_buttons.place(rely=0.8)
         self.frame_buttons.pack_propagate(False)
 
-        self.frame_stats = tk.Frame(master=self, width=.3*window_width, height=1.0*window_height,
+        self.frame_stats = tk.Frame(master=self, width=.3 * self.window_width, height=1.0 * self.window_height,
                                     **self.config_gui.frames_config)
         self.frame_stats.place(relx=.7)
         self.frame_stats.pack_propagate(False)
@@ -106,8 +110,8 @@ class App(tk.Tk):
 
         self.tk_image_logos = [
             ImageTk.PhotoImage(image_logo.resize((
-                get_height_rescale_constant_aspect_ratio(image_logo, logo_img_height),
-                logo_img_height,
+                get_height_rescale_constant_aspect_ratio(image_logo, self.logo_img_height),
+                self.logo_img_height,
             )))
             for image_logo in self.images_logos
         ]
@@ -130,8 +134,8 @@ class App(tk.Tk):
 
         self.tk_images_users = [
             ImageTk.PhotoImage(image_user.resize((
-                get_height_rescale_constant_aspect_ratio(image_user, label_img_height),
-                label_img_height,
+                get_height_rescale_constant_aspect_ratio(image_user, self.label_img_height),
+                self.label_img_height,
             )))
             for image_user in self.images_users
         ]
