@@ -40,7 +40,7 @@ class Config:
         self.snr_ue_linear: float = 1
         self.total_resource_slots: int = 5
         self.num_users: dict = {
-            UserNormal: 2,
+            UserNormal: 3,
             UserAmbulance: 1,
         }
         self.max_job_size_resource_slots: dict = {
