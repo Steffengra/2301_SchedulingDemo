@@ -38,7 +38,7 @@ class Config:
         self.num_steps_per_episode: int = 50_000
 
         self.snr_ue_linear: float = 1
-        self.total_resource_slots: int = 5
+        self.num_total_resource_slots: int = 10
         self.num_users: dict = {
             UserNormal: 3,
             UserAmbulance: 1,
