@@ -15,59 +15,12 @@ from matplotlib.figure import Figure
 from src.config.config import (
     Config,
 )
+from src.config.config_gui import (
+    ConfigGUI,
+)
 from src.data.scheduling_data import (
     SchedulingData,
 )
-
-
-# CONFIG
-label_img_width_scale = 0.1
-label_img_height_scale = 0.1
-
-label_img_logos_height = 0.07
-
-button_font = ('Arial', 50)
-button_user_width = 6  # relative to font size
-button_user_height = 2  # relative to font size
-
-label_resource_font = ('Arial', 50)
-label_resource_width = 3  # relative to font size
-label_resource_height = 1  # relative to font size
-
-label_user_font = ('Arial', 25)
-
-cp3: dict[str: str] = {  # uni branding
-        'red1': '#9d2246',
-        'red2': '#d50c2f',
-        'red3': '#f39ca9',
-        'blue1': '#00326d',
-        'blue2': '#0068b4',
-        'blue3': '#89b4e1',
-        'purple1': '#3b296a',
-        'purple2': '#8681b1',
-        'purple3': '#c7c1e1',
-        'peach1': '#d45b65',
-        'peach2': '#f4a198',
-        'peach3': '#fbdad2',
-        'orange1': '#f7a600',
-        'orange2': '#fece43',
-        'orange3': '#ffe7b6',
-        'green1': '#008878',
-        'green2': '#8acbb7',
-        'green3': '#d6ebe1',
-        'yellow1': '#dedc00',
-        'yellow2': '#f6e945',
-        'yellow3': '#fff8bd',
-        'white': '#ffffff',
-        'black': '#000000',
-    }
-
-user_colors = {
-    0: cp3['blue1'],
-    1: cp3['blue2'],
-    2: cp3['blue3'],
-    3: cp3['red2'],
-}
 
 num_resources = 10
 
@@ -89,6 +42,7 @@ class App(tk.Tk):
         self.attributes('-fullscreen', True)
 
         self.config = Config()
+        self.config_gui = ConfigGUI()
 
         # SIMS
         self.sim_main = SchedulingData(config=self.config)
@@ -107,66 +61,34 @@ class App(tk.Tk):
         window_width = self.winfo_screenwidth()
         window_height = self.winfo_screenheight()
 
-        label_img_height = int(label_img_height_scale * window_height)
-        logo_img_height = int(label_img_logos_height * window_height)
-
-        button_user_config = {
-            'font': button_font,
-            'width': button_user_width,
-            'height': button_user_height,
-        }
-
-        label_resource_config = {
-            'font': label_resource_font,
-            'width': label_resource_width,
-            'height': label_resource_height,
-            'borderwidth': 2,
-            'relief': 'solid',
-            'bg': 'white',
-        }
-
-        label_user_image_config = {
-            'bg': 'white',
-            'highlightthickness': 15,
-        }
-
-        label_user_text_config = {
-            'font': label_user_font,
-            'bg': 'white',
-            'justify': tk.LEFT,
-        }
-
-        frames_config = {
-            'bg': 'white',
-            # 'relief': 'solid',
-            # 'borderwidth': 2,
-        }
+        label_img_height = int(self.config_gui.label_img_height_scale * window_height)
+        logo_img_height = int(self.config_gui.label_img_logos_height * window_height)
 
         # GUI
         # Frames
-        self.frame_scenario = tk.Frame(master=self, width=.5*window_width, height=.8*window_height, **frames_config)
+        self.frame_scenario = tk.Frame(master=self, width=.5*window_width, height=.8*window_height, **self.config_gui.frames_config)
         self.frame_scenario.place(relx=0.0)
 
-        self.frame_resource_grid = tk.Frame(master=self, width=.2*window_width, height=.8*window_height, **frames_config)
+        self.frame_resource_grid = tk.Frame(master=self, width=.2*window_width, height=.8*window_height, **self.config_gui.frames_config)
         self.frame_resource_grid.place(relx=0.5)
         self.frame_resource_grid.pack_propagate(False)
 
-        self.subframe_resource_grid = tk.Frame(master=self.frame_resource_grid, **frames_config)  # holds all the resource blocks in center of the resource grid frame
+        self.subframe_resource_grid = tk.Frame(master=self.frame_resource_grid, **self.config_gui.frames_config)  # holds all the resource blocks in center of the resource grid frame
         self.subframe_resource_grid.pack(expand=True)
 
-        self.frame_buttons = tk.Frame(master=self, width=.7*window_width, height=.2*window_height, **frames_config)
+        self.frame_buttons = tk.Frame(master=self, width=.7*window_width, height=.2*window_height, **self.config_gui.frames_config)
         self.frame_buttons.place(rely=0.8)
         self.frame_buttons.pack_propagate(False)
 
-        self.frame_stats = tk.Frame(master=self, width=.3*window_width, height=1.0*window_height, **frames_config)
+        self.frame_stats = tk.Frame(master=self, width=.3*window_width, height=1.0*window_height, **self.config_gui.frames_config)
         self.frame_stats.place(relx=.7)
         self.frame_stats.pack_propagate(False)
 
-        self.subframe_logos = tk.Frame(master=self.frame_scenario, **frames_config)
+        self.subframe_logos = tk.Frame(master=self.frame_scenario, **self.config_gui.frames_config)
         self.subframe_logos.place(relx=0.0, rely=0.0)
 
         self.subframes_users = [
-            tk.Frame(master=self.frame_scenario, **frames_config)
+            tk.Frame(master=self.frame_scenario, **self.config_gui.frames_config)
             for _ in range(4)
         ]
         self.subframes_users[0].place(relx=0.1, rely=0.2)
@@ -189,7 +111,7 @@ class App(tk.Tk):
         ]
 
         self.labels_img_logos = [
-            tk.Label(self.subframe_logos, image=tk_image_logo, **label_user_text_config)
+            tk.Label(self.subframe_logos, image=tk_image_logo, **self.config_gui.label_user_text_config)
             for tk_image_logo in self.tk_image_logos
         ]
 
@@ -215,8 +137,8 @@ class App(tk.Tk):
         self.labels_img_users = [
             tk.Label(self.subframes_users[user_id],
                      image=self.tk_images_users[user_id],
-                     highlightbackground=user_colors[user_id],
-                     **label_user_image_config)
+                     highlightbackground=self.config_gui.user_colors[user_id],
+                     **self.config_gui.label_user_image_config)
             for user_id in range(4)
         ]
 
@@ -224,7 +146,7 @@ class App(tk.Tk):
             label_img_user.pack(anchor='w', pady=10)
 
         self.labels_text_users = [
-            tk.Label(subframe_user, **label_user_text_config)
+            tk.Label(subframe_user, **self.config_gui.label_user_text_config)
             for subframe_user in self.subframes_users
         ]
 
@@ -235,14 +157,14 @@ class App(tk.Tk):
 
         # Buttons
         self.buttons_users = [
-            tk.Button(self.frame_buttons, text='1', bg=user_colors[0], command=self.callback_button_user_0,
-                      **button_user_config),
-            tk.Button(self.frame_buttons, text='2', bg=user_colors[1], command=self.callback_button_user_1,
-                      **button_user_config),
-            tk.Button(self.frame_buttons, text='3', bg=user_colors[2], command=self.callback_button_user_2,
-                      **button_user_config),
-            tk.Button(self.frame_buttons, text='A', bg=user_colors[3], command=self.callback_button_user_ambulance,
-                      **button_user_config),
+            tk.Button(self.frame_buttons, text='1', bg=self.config_gui.user_colors[0], command=self.callback_button_user_0,
+                      **self.config_gui.button_user_config),
+            tk.Button(self.frame_buttons, text='2', bg=self.config_gui.user_colors[1], command=self.callback_button_user_1,
+                      **self.config_gui.button_user_config),
+            tk.Button(self.frame_buttons, text='3', bg=self.config_gui.user_colors[2], command=self.callback_button_user_2,
+                      **self.config_gui.button_user_config),
+            tk.Button(self.frame_buttons, text='A', bg=self.config_gui.user_colors[3], command=self.callback_button_user_ambulance,
+                      **self.config_gui.button_user_config),
         ]
 
         for button in self.buttons_users:
@@ -250,8 +172,8 @@ class App(tk.Tk):
 
         # Resource Grid
         self.labels_resource_grid = [
-            tk.Label(self.subframe_resource_grid, text='', **label_resource_config)
-            for _ in range(num_resources)
+            tk.Label(self.subframe_resource_grid, text='', **self.config_gui.label_resource_config)
+            for _ in range(self.config.num_total_resource_slots)
         ]
 
         for label_resource_grid_id in range(len(self.labels_resource_grid)):
@@ -301,7 +223,7 @@ class App(tk.Tk):
             self,
             user_id,
     ) -> None:
-        self.labels_resource_grid[self.current_resource_pointer].config(bg=user_colors[user_id])
+        self.labels_resource_grid[self.current_resource_pointer].config(bg=self.config_gui.user_colors[user_id])
         self.current_resource_pointer = self.current_resource_pointer + 1
         self.resources_per_user[user_id] += 1
         if self.current_resource_pointer == num_resources:
