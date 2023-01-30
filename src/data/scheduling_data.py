@@ -29,7 +29,7 @@ class SchedulingData:
         self.rng = self.config.rng
 
         # INITIALIZE RESOURCE GRID
-        self.resource_grid = ResourceGrid(total_resource_slots=self.config.total_resource_slots)
+        self.resource_grid = ResourceGrid(total_resource_slots=self.config.num_total_resource_slots)
         self.logger.info('ResourceGrid initialized')
 
         # INITIALIZE USERS
