@@ -66,21 +66,25 @@ class App(tk.Tk):
 
         # GUI
         # Frames
-        self.frame_scenario = tk.Frame(master=self, width=.5*window_width, height=.8*window_height, **self.config_gui.frames_config)
+        self.frame_scenario = tk.Frame(master=self, width=.5*window_width, height=.8*window_height,
+                                       **self.config_gui.frames_config)
         self.frame_scenario.place(relx=0.0)
 
-        self.frame_resource_grid = tk.Frame(master=self, width=.2*window_width, height=.8*window_height, **self.config_gui.frames_config)
+        self.frame_resource_grid = tk.Frame(master=self, width=.2*window_width, height=.8*window_height,
+                                            **self.config_gui.frames_config)
         self.frame_resource_grid.place(relx=0.5)
         self.frame_resource_grid.pack_propagate(False)
 
         self.subframe_resource_grid = tk.Frame(master=self.frame_resource_grid, **self.config_gui.frames_config)  # holds all the resource blocks in center of the resource grid frame
         self.subframe_resource_grid.pack(expand=True)
 
-        self.frame_buttons = tk.Frame(master=self, width=.7*window_width, height=.2*window_height, **self.config_gui.frames_config)
+        self.frame_buttons = tk.Frame(master=self, width=.7*window_width, height=.2*window_height,
+                                      **self.config_gui.frames_config)
         self.frame_buttons.place(rely=0.8)
         self.frame_buttons.pack_propagate(False)
 
-        self.frame_stats = tk.Frame(master=self, width=.3*window_width, height=1.0*window_height, **self.config_gui.frames_config)
+        self.frame_stats = tk.Frame(master=self, width=.3*window_width, height=1.0*window_height,
+                                    **self.config_gui.frames_config)
         self.frame_stats.place(relx=.7)
         self.frame_stats.pack_propagate(False)
 
@@ -157,13 +161,17 @@ class App(tk.Tk):
 
         # Buttons
         self.buttons_users = [
-            tk.Button(self.frame_buttons, text='1', bg=self.config_gui.user_colors[0], command=self.callback_button_user_0,
+            tk.Button(self.frame_buttons, text='1', command=self.callback_button_user_0,
+                      bg=self.config_gui.user_colors[0],
                       **self.config_gui.button_user_config),
-            tk.Button(self.frame_buttons, text='2', bg=self.config_gui.user_colors[1], command=self.callback_button_user_1,
+            tk.Button(self.frame_buttons, text='2', command=self.callback_button_user_1,
+                      bg=self.config_gui.user_colors[1],
                       **self.config_gui.button_user_config),
-            tk.Button(self.frame_buttons, text='3', bg=self.config_gui.user_colors[2], command=self.callback_button_user_2,
+            tk.Button(self.frame_buttons, text='3', command=self.callback_button_user_2,
+                      bg=self.config_gui.user_colors[2],
                       **self.config_gui.button_user_config),
-            tk.Button(self.frame_buttons, text='A', bg=self.config_gui.user_colors[3], command=self.callback_button_user_ambulance,
+            tk.Button(self.frame_buttons, text='A', command=self.callback_button_user_ambulance,
+                      bg=self.config_gui.user_colors[3],
                       **self.config_gui.button_user_config),
         ]
 
