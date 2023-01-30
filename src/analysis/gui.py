@@ -175,22 +175,26 @@ class App(tk.Tk):
         self.subframes_users[3].place(relx=0.5, rely=0.6)
 
         # Logos
-        self.img_logo_uni_image = Image.open('unilogo.png')
-        self.img_logo_uni = ImageTk.PhotoImage(self.img_logo_uni_image.resize((
-            get_height_rescale_constant_aspect_ratio(self.img_logo_uni_image, logo_img_height),
-            logo_img_height,
-        )))
-        self.img_logo_ant_image = Image.open('ANT.png')
-        self.img_logo_ant = ImageTk.PhotoImage(self.img_logo_ant_image.resize((
-            get_height_rescale_constant_aspect_ratio(self.img_logo_ant_image, logo_img_height),
-            logo_img_height,
-        )))
+        self.images_logos = [
+            Image.open('unilogo.png'),
+            Image.open('ANT.png'),
+        ]
 
-        self.label_img_logo_uni = tk.Label(self.subframe_logos, image=self.img_logo_uni, **label_user_text_config)
-        self.label_img_logo_ant = tk.Label(self.subframe_logos, image=self.img_logo_ant, **label_user_text_config)
+        self.tk_image_logos = [
+            ImageTk.PhotoImage(image_logo.resize((
+                get_height_rescale_constant_aspect_ratio(image_logo, logo_img_height),
+                logo_img_height,
+            )))
+            for image_logo in self.images_logos
+        ]
 
-        self.label_img_logo_uni.pack(side=tk.LEFT, padx=10, pady=10)
-        self.label_img_logo_ant.pack(side=tk.LEFT)
+        self.labels_img_logos = [
+            tk.Label(self.subframe_logos, image=tk_image_logo, **label_user_text_config)
+            for tk_image_logo in self.tk_image_logos
+        ]
+
+        for label_img_logo in self.labels_img_logos:
+            label_img_logo.pack(side=tk.LEFT, padx=10, pady=10)
 
         # Users
         self.images_users = [
@@ -201,11 +205,11 @@ class App(tk.Tk):
         ]
 
         self.tk_images_users = [
-            ImageTk.PhotoImage(self.images_users[user_id].resize((
-                get_height_rescale_constant_aspect_ratio(self.images_users[user_id], label_img_height),
+            ImageTk.PhotoImage(image_user.resize((
+                get_height_rescale_constant_aspect_ratio(image_user, label_img_height),
                 label_img_height,
             )))
-            for user_id in range(4)
+            for image_user in self.images_users
         ]
 
         self.labels_img_users = [
@@ -220,8 +224,8 @@ class App(tk.Tk):
             label_img_user.pack(anchor='w', pady=10)
 
         self.labels_text_users = [
-            tk.Label(self.subframes_users[user_id], **label_user_text_config)
-            for user_id in range(4)
+            tk.Label(subframe_user, **label_user_text_config)
+            for subframe_user in self.subframes_users
         ]
 
         self.update_user_text_labels()
@@ -333,33 +337,6 @@ class App(tk.Tk):
             text = f'Wants: {resources}\n' \
                    f'Channel Strength: {channel_strength}'
             label_text_user.configure(text=text)
-
-        # channel_strength = self.sim_main.users[1].power_gain
-        # if self.sim_main.users[1].job:
-        #     resources = self.sim_main.users[1].job.size_resource_slots
-        # else:
-        #     resources = 0
-        # text = f'Wants: {resources}' \
-        #        f'Channel Strength: {channel_strength}'
-        # self.label_text_user_1.configure(text=text)
-        #
-        # channel_strength = self.sim_main.users[2].power_gain
-        # if self.sim_main.users[2].job:
-        #     resources = self.sim_main.users[2].job.size_resource_slots
-        # else:
-        #     resources = 0
-        # text = f'Wants: {resources}' \
-        #        f'Channel Strength: {channel_strength}'
-        # self.label_text_user_2.configure(text=text)
-        #
-        # channel_strength = self.sim_main.users[3].power_gain
-        # if self.sim_main.users[3].job:
-        #     resources = self.sim_main.users[3].job.size_resource_slots
-        # else:
-        #     resources = 0
-        # text = f'Wants: {resources}' \
-        #        f'Channel Strength: {channel_strength}'
-        # self.label_text_user_ambulance.configure(text=text)
 
 
 if __name__ == '__main__':
