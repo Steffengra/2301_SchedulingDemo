@@ -9,6 +9,9 @@ from numpy import (
     mean,
     std,
 )
+from copy import (
+    deepcopy,
+)
 
 from src.data.resource_grid import (
     ResourceGrid,
@@ -49,6 +52,22 @@ class SchedulingData:
 
         self.generate_new_jobs()
         self.logger.info('SchedulingData sim initialized')
+
+    def export_state(
+            self,
+    ) -> dict:
+        state: dict = {
+            'resource_grid': deepcopy(self.resource_grid),
+            'users': deepcopy(self.users)
+        }
+        return state
+
+    def import_state(
+            self,
+            state: dict,
+    ) -> None:
+        self.resource_grid = state['resource_grid']
+        self.users = state['users']
 
     def generate_new_jobs(
             self,
