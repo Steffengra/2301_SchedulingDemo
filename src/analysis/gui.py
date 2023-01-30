@@ -23,7 +23,7 @@ from src.data.scheduling_data import (
 )
 
 
-def get_height_rescale_constant_aspect_ratio(
+def get_width_rescale_constant_aspect_ratio(
         image: Image,
         new_height_px,
 ) -> int:
@@ -32,9 +32,11 @@ def get_height_rescale_constant_aspect_ratio(
 
 
 class App(tk.Tk):
+
     def __init__(
             self,
     ) -> None:
+
         super().__init__()
         self.configure(bg='white')
         self.attributes('-fullscreen', True)
@@ -65,6 +67,7 @@ class App(tk.Tk):
     def _gui_setup(
             self,
     ) -> None:
+
         # Frames
         self.frame_scenario = tk.Frame(master=self, width=.5 * self.window_width, height=.8 * self.window_height,
                                        **self.config_gui.frames_config)
@@ -110,7 +113,7 @@ class App(tk.Tk):
 
         self.tk_image_logos = [
             ImageTk.PhotoImage(image_logo.resize((
-                get_height_rescale_constant_aspect_ratio(image_logo, self.logo_img_height),
+                get_width_rescale_constant_aspect_ratio(image_logo, self.logo_img_height),
                 self.logo_img_height,
             )))
             for image_logo in self.images_logos
@@ -134,7 +137,7 @@ class App(tk.Tk):
 
         self.tk_images_users = [
             ImageTk.PhotoImage(image_user.resize((
-                get_height_rescale_constant_aspect_ratio(image_user, self.label_img_height),
+                get_width_rescale_constant_aspect_ratio(image_user, self.label_img_height),
                 self.label_img_height,
             )))
             for image_user in self.images_users
@@ -233,6 +236,7 @@ class App(tk.Tk):
             self,
             user_id,
     ) -> None:
+
         self.labels_resource_grid[self.current_resource_pointer].config(bg=self.config_gui.user_colors[user_id])
         self.current_resource_pointer = self.current_resource_pointer + 1
         self.resources_per_user[user_id] += 1
@@ -260,6 +264,7 @@ class App(tk.Tk):
     def update_user_text_labels(
             self,
     ) -> None:
+
         for label_text_user_id, label_text_user in enumerate(self.labels_text_users):
             channel_strength = self.sim_main.users[label_text_user_id].power_gain
             if self.sim_main.users[label_text_user_id].job:
