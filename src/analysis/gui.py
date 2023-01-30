@@ -22,8 +22,6 @@ from src.data.scheduling_data import (
     SchedulingData,
 )
 
-num_resources = 10
-
 
 def get_height_rescale_constant_aspect_ratio(
         image: Image,
@@ -234,8 +232,8 @@ class App(tk.Tk):
         self.labels_resource_grid[self.current_resource_pointer].config(bg=self.config_gui.user_colors[user_id])
         self.current_resource_pointer = self.current_resource_pointer + 1
         self.resources_per_user[user_id] += 1
-        if self.current_resource_pointer == num_resources:
-            action = array(list(self.resources_per_user.values())) / num_resources
+        if self.current_resource_pointer == self.config.num_total_resource_slots:
+            action = array(list(self.resources_per_user.values())) / self.config.num_total_resource_slots
             action = action.astype('float32')
             # TODO: DO SOMETHING
             reward, reward_components = self.sim_main.step(percentage_allocation_solution=action)
