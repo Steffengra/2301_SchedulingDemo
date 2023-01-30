@@ -20,7 +20,6 @@ from src.data.user import (
 )
 
 # vergleich verschiedener ziele? maxminfair, max throughput, prio
-# TODO: Figure out how to set priority
 
 
 class Config:
@@ -110,7 +109,11 @@ class Config:
             }
         }
 
-        # POST INIT - DO NOT TOUCH--------------------------------------------------------------------------------------
+        self._post_init()
+
+    def _post_init(
+            self,
+    ) -> None:
         # Paths
         self.project_root_path = Path(__file__).parent.parent.parent
 
