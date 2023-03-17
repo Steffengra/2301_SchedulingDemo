@@ -58,7 +58,7 @@ class ExperienceBuffer:
         sample_experience_ids = self.rng.choice(
             a=self.buffer_size,
             size=batch_size,
-            replace=True,  # Can an experience id be selected multiple times? Yes/No
+            replace=False,  # Can an experience id be selected multiple times? Yes/No
             p=self.probabilities,
         )
 
