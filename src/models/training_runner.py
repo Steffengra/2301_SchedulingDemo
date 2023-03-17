@@ -101,8 +101,8 @@ class TrainingRunner:
             allocator.networks['policy'][0]['primary'].save(checkpoint_path)
 
             # save config
-            copytree(Path(self.config.project_root_path, 'src', 'config'),
-                     Path(checkpoint_path, 'config'),
+            copytree(Path(self.config.project_root_path, 'src', '../config'),
+                     Path(checkpoint_path, '../config'),
                      dirs_exist_ok=True)
 
             # clean model checkpoints
