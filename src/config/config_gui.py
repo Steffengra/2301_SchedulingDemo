@@ -32,11 +32,22 @@ class ConfigGUI:
 
         self.label_user_font = ('Arial', 25)
 
+        self.countdown_reset_value_seconds: int = 10
+
         self.user_colors = {
             0: self.cp3['blue1'],
             1: self.cp3['blue2'],
             2: self.cp3['blue3'],
             3: self.cp3['red2'],
+        }
+
+        self.learned_agents: dict = {
+            'sumrate': load_model(Path(self.models_path, 'max_sumrate', 'policy')),
+            'fairness': load_model(Path(self.models_path, 'fairness', 'policy_snap_0.914')),
+            'mixed': load_model(Path(self.models_path, 'mixed', 'policy_snap_1.020')),
+            # 'sumrate': 1,
+            # 'fairness': 1,
+            # 'mixed': 1,
         }
 
         self._post_init()
@@ -84,6 +95,11 @@ class ConfigGUI:
             'bg': 'white',
             # 'relief': 'solid',
             # 'borderwidth': 2,
+        }
+
+        self.labels_config = {
+            'font': self.label_user_font,
+            'bg': 'white',
         }
 
     def _load_palettes(
