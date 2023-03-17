@@ -33,7 +33,7 @@ class Config:
         self._logging_level_tensorflow = logging.INFO
 
         # SCHEDULING SIM PARAMETERS-------------------------------------------------------------------------------------
-        self.num_episodes: int = 1
+        self.num_episodes: int = 60
         self.num_steps_per_episode: int = 50_000
 
         self.snr_ue_linear: float = 1
@@ -43,24 +43,24 @@ class Config:
             UserAmbulance: 1,
         }
         self.max_job_size_resource_slots: dict = {
-            'Normal': 5,
+            'Normal': 7,
             'Ambulance': 5,
         }
         self.probs_new_job: dict = {
-            'Normal': 0.8,
+            'Normal': 1.0,
             'Ambulance': 0.5,
         }
         self.rayleigh_fading_scale: float = 1e-8
 
         self.reward_weightings = {
-            'sum rate': 1.0,
-            'priority missed': 0.0,
-            'fairness': 0.0,
+            'sum rate': 1/40,
+            'priority missed': -1,
+            'fairness': 0.5,
         }
 
         # LEARNING PARAMETERS-------------------------------------------------------------------------------------------
         self.exploration_noise_decay_start_percent: float = 0.0  # when to start decay in %
-        self.exploration_noise_decay_threshold_percent: float = 0.5  # when to decay to 0 in %
+        self.exploration_noise_decay_threshold_percent: float = 0.8  # when to decay to 0 in %
         self.exploration_noise_momentum_initial: float = 1.0
 
         self.experience_buffer_args: dict = {
@@ -88,7 +88,7 @@ class Config:
             },
             'policy_network_optimizer': tf.keras.optimizers.Adam,
             'policy_network_optimizer_args': {
-                'learning_rate': 1e-4,
+                'learning_rate': 1e-6,
                 # 'learning_rate': PiecewiseConstantDecay([int(0.8*self.num_episodes*200)], [1e-4, 1e-5]),
                 'amsgrad': False,
             },
@@ -114,8 +114,10 @@ class Config:
     def _post_init(
             self,
     ) -> None:
+
         # Paths
         self.project_root_path = Path(__file__).parent.parent.parent
+        self.models_path = Path(self.project_root_path, 'models')
 
         # rng
         self.rng = default_rng(seed=None)
