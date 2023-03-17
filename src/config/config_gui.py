@@ -2,6 +2,12 @@
 from tkinter import (
     LEFT,
 )
+from pathlib import (
+    Path,
+)
+from keras.models import (
+    load_model,
+)
 
 
 class ConfigGUI:
@@ -38,11 +44,16 @@ class ConfigGUI:
     def _pre_init(
             self,
     ) -> None:
+
+        self.project_root_path = Path(__file__).parent.parent.parent
+        self.models_path = Path(self.project_root_path, 'models')
+
         self._load_palettes()
 
     def _post_init(
             self,
     ) -> None:
+
         self.button_user_config = {
             'font': self.button_font,
             'width': self.button_user_width,
