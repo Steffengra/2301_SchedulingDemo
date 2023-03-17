@@ -14,7 +14,6 @@ There is also a countdown challenge mode.
 | ├─ analysis      | GUI                                              |
 | ├─ config        | configuration files                              |
 | ├─ data          | data generation, loading, etc.                   |
-| └─ models        | model training and inference                     |
 | .gitignore       | .gitignore                                       |
 | README.md        | readme                                           |
 | requirements.txt | pip freeze > requirements.txt                    |
