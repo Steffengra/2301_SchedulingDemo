@@ -47,6 +47,9 @@ class App(tk.Tk):
         self.window_width = self.winfo_screenwidth()
         self.window_height = self.winfo_screenheight()
 
+        self.countdown_toggle = False
+        self.countdown_value = 0
+
         # SIMS
         self.sim_main = SchedulingData(config=self.config)
         self.sim_0 = SchedulingData(config=self.config)
@@ -92,6 +95,16 @@ class App(tk.Tk):
                                     **self.config_gui.frames_config)
         self.frame_stats.place(relx=.7)
         self.frame_stats.pack_propagate(False)
+        self.subframe_countdown_button = tk.Frame(master=self.frame_stats, **self.config_gui.frames_config)
+        self.subframe_instant_stats = tk.Frame(master=self.frame_stats, **self.config_gui.frames_config)
+        self.subframe_lifetime_stats = tk.Frame(master=self.frame_stats, **self.config_gui.frames_config)
+        self.separator_after_countdown = ttk.Separator(self.frame_stats, orient='horizontal')
+        self.separator_after_instant_stats = ttk.Separator(self.frame_stats, orient='horizontal')
+        self.subframe_countdown_button.pack(expand=True)
+        self.separator_after_countdown.pack(fill=tk.X, expand=True)
+        self.subframe_instant_stats.pack(expand=True)
+        self.separator_after_instant_stats.pack(fill=tk.X, expand=True)
+        self.subframe_lifetime_stats.pack(expand=True)
 
         self.subframe_logos = tk.Frame(master=self.frame_scenario, **self.config_gui.frames_config)
         self.subframe_logos.place(relx=0.0, rely=0.0)
@@ -192,9 +205,14 @@ class App(tk.Tk):
         for label_resource_grid_id in range(len(self.labels_resource_grid)):
             self.labels_resource_grid[label_resource_grid_id].pack(side=tk.TOP)
 
-        # Separator
-        self.separator = ttk.Separator(orient='vertical')
-        self.separator.place(relx=0.7, rely=0, relwidth=0.0, relheight=1)
+        # Separator Vertical
+        self.separator_vertical = ttk.Separator(orient='vertical')
+        self.separator_vertical.place(relx=0.7, rely=0, relwidth=0.0, relheight=1)
+
+        # Countdown Button
+        self.button_timer = tk.Button(self.subframe_countdown_button, text='PANIC', command=self.callback_button_timer,
+                                      **self.config_gui.button_user_config)
+        self.button_timer.pack(side=tk.TOP, expand=True)
 
         # Stats
         self.label_stats = tk.Label(self.frame_stats, text='this is a label for stats and such')
@@ -211,6 +229,31 @@ class App(tk.Tk):
         self.canvas.draw()
 
         self.canvas.get_tk_widget().pack(side=tk.TOP)
+
+    def check_loop(
+            self,
+    ) -> None:
+
+        if self.countdown_toggle:
+            if self.countdown_value == 0:
+                self.evaluate_allocation()
+                self.countdown_value = self.config_gui.countdown_reset_value_seconds
+
+            self.countdown_value -= 1
+            self.button_timer.configure(text=self.countdown_value)
+            self.after(1000, self.check_loop)
+
+    def callback_button_timer(
+            self,
+    ) -> None:
+
+        self.countdown_toggle = not self.countdown_toggle
+        if self.countdown_toggle:
+            self.countdown_value = self.config_gui.countdown_reset_value_seconds
+            self.after(1000, self.check_loop)
+
+        if not self.countdown_toggle:
+            self.button_timer.configure(text='kalm')
 
     def callback_button_user_0(
             self,
@@ -261,6 +304,9 @@ class App(tk.Tk):
             for label_resource in self.labels_resource_grid:
                 label_resource.config(bg='white')
 
+        self.countdown_value = self.config_gui.countdown_reset_value_seconds
+        self.update_secondary_simulations()
+
     def update_user_text_labels(
             self,
     ) -> None:
@@ -274,6 +320,13 @@ class App(tk.Tk):
             text = f'Wants: {resources}\n' \
                    f'Channel Strength: {channel_strength}'
             label_text_user.configure(text=text)
+
+    def update_secondary_simulations(
+            self,
+    ) -> None:
+
+        for sec_sim in self.secondary_simulations.values():
+            sec_sim.import_state(state=self.sim_main.export_state())
 
 
 if __name__ == '__main__':
