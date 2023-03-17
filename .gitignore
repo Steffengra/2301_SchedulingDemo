@@ -6,7 +6,6 @@ __pycache__/
 venv/
 
 /data/
-/models/
 /outputs/
 /references/
 /reports/
