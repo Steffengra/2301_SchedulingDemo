@@ -1,40 +1,20 @@
 
-# UNDER CONSTRUCTION
+# Man vs Machine Resource Scheduling demo
+
+The user can compare themselves to three AI algorithms in optimizing system metrics,
+currently sum rate, fairness, ambulance timeouts, and mixed performance, by intelligent resource scheduling.
+There is also a countdown challenge mode.
 
 #### Folder Structure
 
 |                  |                                                  |
 |------------------|--------------------------------------------------|
-| data             |                                                  |
-| ├─ interim       | intermediate data                                |
-| ├─ raw           | input data, treat as immutable                   |
-| └─ processed     | final data sets for modeling                     |
-| models           | trained models or summaries                      |
-| outputs          | outputs produced by src                          |
-| references       | manuals etc.                                     |
-| reports          | generated analysis, latex etc.                   |
-| └─ figures       |                                                  |
+| models           | trained models                                   |
 | src              |                                                  |
-| ├─ analysis      | results oriented exploration                     |
+| ├─ analysis      | GUI                                              |
 | ├─ config        | configuration files                              |
 | ├─ data          | data generation, loading, etc.                   |
-| ├─ models        | model training and inference                     |
-| ├─ notebooks     | sketching                                        |
-| ├─ tests         | unit tests etc.                                  |
-| └─ utils         | functions shared between different parts of code |
+| └─ models        | model training and inference                     |
 | .gitignore       | .gitignore                                       |
 | README.md        | readme                                           |
 | requirements.txt | pip freeze > requirements.txt                    |
-
-#### Markdown
-|            |                                  |
-|------------|----------------------------------|
-| Heading    | #, ##, ###, ...                  |
-| Bold       | `**bold**`                       |
-| Italic     | `*italic*`                       |
-| Blockquote | `> blockquote`                   |
-| Enumerate  | 1. a<br/>2. b<br/>...            |
-| Itemize    | - a<br/>- b<br/>...              |
-| code       | `code`                           |
-| Hrule      | ---                              |
-| Link       | [title](https://www.example.com) |
