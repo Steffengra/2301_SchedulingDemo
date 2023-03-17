@@ -5,6 +5,8 @@ from PIL import ImageTk, Image
 
 from numpy import (
     array,
+    newaxis,
+    mean,
 )
 
 from matplotlib.backends.backend_tkagg import (
@@ -52,14 +54,35 @@ class App(tk.Tk):
 
         # SIMS
         self.sim_main = SchedulingData(config=self.config)
-        self.sim_0 = SchedulingData(config=self.config)
-        self.sim_0.import_state(state=self.sim_main.export_state())
+        self.secondary_simulations = {
+            learner_name: SchedulingData(config=self.config)
+            for learner_name in self.config_gui.learned_agents.keys()
+        }
+        self.update_secondary_simulations()
 
         self.current_resource_pointer = 0
         self.resources_per_user = {
             user_id: 0
             for user_id in range(4)
         }
+
+        # LIFETIME STATS
+        self.lifetime_stats = {
+            'self': {
+                'sumrate': [],
+                'fairness': [],
+                'timeouts': [],
+                'overall': [],
+            }
+        }
+        for learner_name in self.config_gui.learned_agents.keys():
+            self.lifetime_stats[learner_name] = {
+                'sumrate': [],
+                'fairness': [],
+                'timeouts': [],
+                'overall': [],
+            }
+        self.maximum_reward_achieved = 0.1
 
         # ARITHMETIC
         self.label_img_height = int(self.config_gui.label_img_users_height_scale * self.window_height)
@@ -215,17 +238,45 @@ class App(tk.Tk):
         self.button_timer.pack(side=tk.TOP, expand=True)
 
         # Stats
-        self.label_stats = tk.Label(self.frame_stats, text='this is a label for stats and such')
-        self.label_stats.pack(side=tk.TOP)
+        self.label_instant_stats = tk.Label(self.subframe_instant_stats, text='Result', **self.config_gui.labels_config)
+        self.label_instant_stats.pack(pady=30)
+
+        self.table_stats = ttk.Treeview(
+            self.subframe_instant_stats,
+            columns=('', 'Sum Rate', 'Fairness', 'TimeOuts', 'Overall'),
+            show='headings',
+            height=len(self.secondary_simulations) + 1,
+        )
+        self.table_stats.column('', anchor='e', width=120, stretch=tk.YES)
+        self.table_stats.column('Sum Rate', anchor=tk.CENTER, width=80)
+        self.table_stats.column('Fairness', anchor=tk.CENTER, width=80)
+        self.table_stats.column('TimeOuts', anchor=tk.CENTER, width=80)
+        self.table_stats.column('Overall', anchor=tk.CENTER, width=80)
+        self.table_stats.heading('', text='', anchor=tk.CENTER)
+        self.table_stats.heading('Sum Rate', text='Sum Rate', anchor=tk.CENTER)
+        self.table_stats.heading('Fairness', text='Fairness', anchor=tk.CENTER)
+        self.table_stats.heading('TimeOuts', text='TimeOuts', anchor=tk.CENTER)
+        self.table_stats.heading('Overall', text='Overall', anchor=tk.CENTER)
+        self.table_stats.insert('', tk.END, iid='self', values=['YOU', 0, 0, 0, 0])
+        for learner_name in self.secondary_simulations.keys():
+            self.table_stats.insert('', tk.END, iid=learner_name, values=[f'Learner {learner_name}', 0, 0, 0, 0])
+
+        self.table_stats.pack()
 
         # FIG TEST
-        fig = Figure(figsize=(5, 4), dpi=100)
-        ax = fig.add_subplot()
-        t = range(4)
-        self.bars = ax.bar(t, [0, 0, 0, 0])
-        ax.set_ylim([0, 1.0])
+        self.label_lifetime_stats = tk.Label(self.subframe_lifetime_stats, text='Lifetime Stats Overall', **self.config_gui.labels_config)
+        self.label_lifetime_stats.pack(side=tk.TOP)
 
-        self.canvas = FigureCanvasTkAgg(fig, master=self.frame_stats)  # A tk.DrawingArea.
+        fig = Figure(figsize=(5, 4), dpi=100)
+        self.ax = fig.add_subplot()
+        t = range(4)
+        self.bars_primary = self.ax.barh(t, width=[0, 0, 0, 0], height=0.8)
+        # self.bars = ax.barh(t, width=[0, 0, 0, 0])
+        self.ax.set_xlim([0, 40])
+        self.ax.set_yticks([0, 1, 2, 3], ['YOU', 'Learner Sum Rate', 'Learner Fairness', 'Learner Mixed'])
+        fig.tight_layout()
+
+        self.canvas = FigureCanvasTkAgg(fig, master=self.subframe_lifetime_stats)  # A tk.DrawingArea.
         self.canvas.draw()
 
         self.canvas.get_tk_widget().pack(side=tk.TOP)
@@ -284,25 +335,60 @@ class App(tk.Tk):
         self.current_resource_pointer = self.current_resource_pointer + 1
         self.resources_per_user[user_id] += 1
         if self.current_resource_pointer == self.config.num_total_resource_slots:
-            action = array(list(self.resources_per_user.values())) / self.config.num_total_resource_slots
-            action = action.astype('float32')
-            # TODO: DO SOMETHING
-            reward, reward_components = self.sim_main.step(percentage_allocation_solution=action)
+            self.after(100, self.evaluate_allocation)
 
-            self.update_user_text_labels()
+    def evaluate_allocation(
+            self,
+    ) -> None:
+        action = array(list(self.resources_per_user.values())) / self.config.num_total_resource_slots
+        action = action.astype('float32')
+        reward, reward_components = self.sim_main.step(percentage_allocation_solution=action)
 
-            for bar, value in zip(self.bars, action):
-                bar.set_height(value)
-            self.canvas.draw()
-            self.current_resource_pointer = 0
-            self.resources_per_user = {
-                0: 0,
-                1: 0,
-                2: 0,
-                3: 0,
-            }
-            for label_resource in self.labels_resource_grid:
-                label_resource.config(bg='white')
+        self.table_stats.set('self', 'Sum Rate', round(reward_components['sum rate'], 2))
+        self.table_stats.set('self', 'Fairness', round(reward_components['fairness score'], 2))
+        self.table_stats.set('self', 'TimeOuts', round(reward_components['prio jobs missed'], 2))
+        self.table_stats.set('self', 'Overall', round(reward, 2))
+        self.lifetime_stats['self']['sumrate'].append(reward_components['sum rate'])
+        self.lifetime_stats['self']['fairness'].append(reward_components['fairness score'])
+        self.lifetime_stats['self']['timeouts'].append(reward_components['prio jobs missed'])
+        self.lifetime_stats['self']['overall'].append(reward)
+
+        for learner_name, learner in self.config_gui.learned_agents.items():
+            action = learner.call(self.secondary_simulations[learner_name].get_state()[newaxis]).numpy().squeeze()
+            reward, reward_components = self.secondary_simulations[learner_name].step(percentage_allocation_solution=action)
+
+            self.table_stats.set(learner_name, 'Sum Rate', round(reward_components['sum rate'], 2))
+            self.table_stats.set(learner_name, 'Fairness', round(reward_components['fairness score'], 2))
+            self.table_stats.set(learner_name, 'TimeOuts', round(reward_components['prio jobs missed'], 2))
+            self.table_stats.set(learner_name, 'Overall', round(reward, 2))
+
+            self.lifetime_stats[learner_name]['sumrate'].append(reward_components['sum rate'])
+            self.lifetime_stats[learner_name]['fairness'].append(reward_components['fairness score'])
+            self.lifetime_stats[learner_name]['timeouts'].append(reward_components['prio jobs missed'])
+            self.lifetime_stats[learner_name]['overall'].append(reward)
+
+        self.update_user_text_labels()
+
+        mean_rewards = [mean(self.lifetime_stats[member]['overall']) for member in self.lifetime_stats.keys()]
+        for mean_reward in mean_rewards:
+            if mean_reward > self.maximum_reward_achieved:
+                self.maximum_reward_achieved = mean_reward
+        self.ax.set_xlim([0, self.maximum_reward_achieved * 1.05])
+        for bar, value in zip(self.bars_primary, mean_rewards):
+            bar.set_width(value)
+
+        self.canvas.draw()
+
+        # reset resources
+        self.current_resource_pointer = 0
+        self.resources_per_user = {
+            0: 0,
+            1: 0,
+            2: 0,
+            3: 0,
+        }
+        for label_resource in self.labels_resource_grid:
+            label_resource.config(bg='white')
 
         self.countdown_value = self.config_gui.countdown_reset_value_seconds
         self.update_secondary_simulations()
