@@ -9,6 +9,13 @@ from numpy import (
 from datetime import (
     datetime,
 )
+from pathlib import (
+    Path,
+)
+from shutil import (
+    copytree,
+    rmtree,
+)
 
 from src.config.config import (
     Config,
@@ -25,6 +32,7 @@ class TrainingRunner:
     def __init__(
             self,
     ) -> None:
+
         self.config = Config()
         self.rng = self.config.rng
 
@@ -63,11 +71,12 @@ class TrainingRunner:
             timedelta = datetime.now() - real_time_start
             finish_time = real_time_start + timedelta / progress
 
-            print(f'\rSimulation completed: {progress:.2%}, '
-                  f'est. finish {finish_time.hour:02d}:{finish_time.minute:02d}:{finish_time.second:02d}', end='')
+            recent_reward = mean(episode_metrics['rewards'][max(step_id-100, 0):step_id-1])
+            # print(episode_metrics['rewards'][step_id])
 
-        def save_networks() -> None:
-            pass
+            print(f'\rSimulation completed: {progress:.2%}, '
+                  f'est. finish {finish_time.hour:02d}:{finish_time.minute:02d}:{finish_time.second:02d}'
+                  f', recent reward: {recent_reward:.2f}', end='')
 
         def anneal_parameters() -> tuple:
             if simulation_step > self.config.exploration_noise_step_start_decay:
@@ -79,6 +88,38 @@ class TrainingRunner:
                 exploration_noise_momentum_new = exploration_noise_momentum
 
             return exploration_noise_momentum_new
+
+        def save_model_checkpoint(extra=None):
+
+            name = f'policy_snap_{extra:.3f}'
+            checkpoint_path = Path(
+                self.config.models_path,
+                training_name,
+                name,
+            )
+
+            allocator.networks['policy'][0]['primary'].save(checkpoint_path)
+
+            # save config
+            copytree(Path(self.config.project_root_path, 'src', 'config'),
+                     Path(checkpoint_path, 'config'),
+                     dirs_exist_ok=True)
+
+            # clean model checkpoints
+            for high_score_prior_id, high_score_prior in enumerate(reversed(high_scores)):
+                if high_score > 1.05 * high_score_prior or high_score_prior_id > 3:
+
+                    name = f'policy_snap_{high_score_prior:.3f}'
+
+                    prior_checkpoint_path = Path(
+                        self.config.models_path,
+                        training_name,
+                        name,
+                    )
+                    rmtree(path=prior_checkpoint_path, ignore_errors=True)
+                    high_scores.remove(high_score_prior)
+
+            return checkpoint_path
 
         training_name = training_name
         real_time_start = datetime.now()
@@ -93,6 +134,8 @@ class TrainingRunner:
             # 'value_loss_mean': +infty * ones(self.config.num_episodes),
             # 'priority_timeouts_per_occurrence': +infty * ones(self.config.num_episodes),
         }
+        high_score = -infty
+        high_scores = []
 
         for episode_id in range(self.config.num_episodes):
 
@@ -151,6 +194,12 @@ class TrainingRunner:
             per_episode_metrics['reward_per_step'][episode_id] = (
                     sum(episode_metrics['rewards']) / self.config.num_steps_per_episode
             )
+            print('\n')
+
+            if per_episode_metrics['reward_per_step'][episode_id] > high_score:
+                high_score = per_episode_metrics['reward_per_step'][episode_id]
+                high_scores.append(high_score)
+                save_model_checkpoint(high_score)
 
         fig, ax = plt.subplots()
         sliding_window_average_rewards: ndarray = -infty * ones(len(episode_metrics['rewards']))
@@ -162,5 +211,7 @@ class TrainingRunner:
         plt.show()
 
 
-r = TrainingRunner()
-r.train(training_name='test')
+if __name__ == '__main__':
+
+    r = TrainingRunner()
+    r.train(training_name='test')
