@@ -25,6 +25,10 @@ class ConfigGUI:
         self.button_user_width = 6  # relative to font size
         self.button_user_height = 2  # relative to font size
 
+        self.button_panic_width = 3  # relative to font size
+        self.button_panic_height = 2  # relative to font size
+        self.button_panic_color = self.cp3['white']
+
         self.label_resource_font = ('Arial', 50)
         self.label_resource_width = 3  # relative to font size
         self.label_resource_height = 1  # relative to font size
@@ -64,6 +68,13 @@ class ConfigGUI:
     def _post_init(
             self,
     ) -> None:
+
+        self.button_panic_config = {
+            'font': self.button_font,
+            'width': self.button_panic_width,
+            'height': self.button_panic_height,
+            'bg': self.button_panic_color,
+        }
 
         self.button_user_config = {
             'font': self.button_font,
