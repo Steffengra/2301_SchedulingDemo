@@ -7,12 +7,18 @@ from numpy import (
     array,
     newaxis,
     mean,
+    round as np_round,
 )
 
 from matplotlib.backends.backend_tkagg import (
     FigureCanvasTkAgg,
 )
-from matplotlib.figure import Figure
+from matplotlib.figure import (
+    Figure,
+)
+from matplotlib import (
+    colormaps,
+)
 
 from src.config.config import (
     Config,
@@ -233,47 +239,50 @@ class App(tk.Tk):
         self.separator_vertical.place(relx=0.7, rely=0, relwidth=0.0, relheight=1)
 
         # Countdown Button
-        self.button_timer = tk.Button(self.subframe_countdown_button, text='PANIC', command=self.callback_button_timer,
-                                      **self.config_gui.button_user_config)
-        self.button_timer.pack(side=tk.TOP, expand=True)
+        self.button_timer = tk.Button(self.subframe_countdown_button, text='⏱', command=self.callback_button_timer,
+                                      **self.config_gui.button_panic_config)
+        self.button_timer.pack(side=tk.TOP, fill=tk.BOTH)
 
-        # Stats
-        self.label_instant_stats = tk.Label(self.subframe_instant_stats, text='Result', **self.config_gui.labels_config)
-        self.label_instant_stats.pack(pady=30)
+        # Instant Stats
+        self.label_instant_stats = tk.Label(self.subframe_instant_stats, text='Scores', **self.config_gui.labels_config)
+        self.label_instant_stats.pack()
 
-        self.table_stats = ttk.Treeview(
-            self.subframe_instant_stats,
-            columns=('', 'Sum Rate', 'Fairness', 'TimeOuts', 'Overall'),
-            show='headings',
-            height=len(self.secondary_simulations) + 1,
-        )
-        self.table_stats.column('', anchor='e', width=120, stretch=tk.YES)
-        self.table_stats.column('Sum Rate', anchor=tk.CENTER, width=80)
-        self.table_stats.column('Fairness', anchor=tk.CENTER, width=80)
-        self.table_stats.column('TimeOuts', anchor=tk.CENTER, width=80)
-        self.table_stats.column('Overall', anchor=tk.CENTER, width=80)
-        self.table_stats.heading('', text='', anchor=tk.CENTER)
-        self.table_stats.heading('Sum Rate', text='Sum Rate', anchor=tk.CENTER)
-        self.table_stats.heading('Fairness', text='Fairness', anchor=tk.CENTER)
-        self.table_stats.heading('TimeOuts', text='TimeOuts', anchor=tk.CENTER)
-        self.table_stats.heading('Overall', text='Overall', anchor=tk.CENTER)
-        self.table_stats.insert('', tk.END, iid='self', values=['YOU', 0, 0, 0, 0])
-        for learner_name in self.secondary_simulations.keys():
-            self.table_stats.insert('', tk.END, iid=learner_name, values=[f'Learner {learner_name}', 0, 0, 0, 0])
+        self.fig_instant_stats = Figure(figsize=(5.5, 1.8))
+        self.ax_instant_stats = self.fig_instant_stats.add_subplot()
+        self.ax_instant_stats.axis('tight')
+        self.ax_instant_stats.axis('off')
 
-        self.table_stats.pack()
+        data = array([[0]*4]*4)
+        self.draw_instant_stats_table(data=data)
+        self.fig_instant_stats.tight_layout()
 
-        # FIG TEST
-        self.label_lifetime_stats = tk.Label(self.subframe_lifetime_stats, text='Lifetime Stats Overall', **self.config_gui.labels_config)
+        self.canvas_instant_stats = FigureCanvasTkAgg(self.fig_instant_stats, master=self.subframe_instant_stats)
+        self.canvas_instant_stats.draw()
+
+        self.canvas_instant_stats.get_tk_widget().pack(expand=True)
+
+        # FIG lifetime stats
+        self.label_lifetime_stats = tk.Label(self.subframe_lifetime_stats,
+                                             text='Overall Performance Since Start',
+                                             **self.config_gui.labels_config)
         self.label_lifetime_stats.pack(side=tk.TOP)
 
-        fig = Figure(figsize=(5, 4), dpi=100)
+        fig = Figure(figsize=(5.5, 2.5), dpi=100)
         self.ax = fig.add_subplot()
         t = range(4)
-        self.bars_primary = self.ax.barh(t, width=[0, 0, 0, 0], height=0.8)
-        # self.bars = ax.barh(t, width=[0, 0, 0, 0])
+        self.bars_primary = self.ax.barh(
+            t,
+            width=[0, 0, 0, 0],
+            height=0.8,
+            color=self.config_gui.cp3['blue3'],
+            edgecolor='black',
+        )
         self.ax.set_xlim([0, 40])
-        self.ax.set_yticks([0, 1, 2, 3], ['YOU', 'Learner Sum Rate', 'Learner Fairness', 'Learner Mixed'])
+        self.ax.set_yticks([0, 1, 2, 3], reversed(['YOU', 'ML: Max Transmit', 'ML: Max Fairness', 'ML: Max Overall']), fontsize=11)
+        self.ax.spines['top'].set_visible(False)
+        self.ax.spines['right'].set_visible(False)
+        self.ax.spines['bottom'].set_visible(False)
+        self.ax.set_xticks([])
         fig.tight_layout()
 
         self.canvas = FigureCanvasTkAgg(fig, master=self.subframe_lifetime_stats)  # A tk.DrawingArea.
@@ -304,7 +313,7 @@ class App(tk.Tk):
             self.after(1000, self.check_loop)
 
         if not self.countdown_toggle:
-            self.button_timer.configure(text='kalm')
+            self.button_timer.configure(text='⏱')
 
     def callback_button_user_0(
             self,
@@ -344,10 +353,13 @@ class App(tk.Tk):
         action = action.astype('float32')
         reward, reward_components = self.sim_main.step(percentage_allocation_solution=action)
 
-        self.table_stats.set('self', 'Sum Rate', round(reward_components['sum rate'], 2))
-        self.table_stats.set('self', 'Fairness', round(reward_components['fairness score'], 2))
-        self.table_stats.set('self', 'TimeOuts', round(reward_components['prio jobs missed'], 2))
-        self.table_stats.set('self', 'Overall', round(reward, 2))
+        instant_stats = [[
+            reward_components['sum rate'],
+            reward_components['fairness score'],
+            reward_components['prio jobs missed'],
+            reward
+        ]]
+
         self.lifetime_stats['self']['sumrate'].append(reward_components['sum rate'])
         self.lifetime_stats['self']['fairness'].append(reward_components['fairness score'])
         self.lifetime_stats['self']['timeouts'].append(reward_components['prio jobs missed'])
@@ -357,10 +369,14 @@ class App(tk.Tk):
             action = learner.call(self.secondary_simulations[learner_name].get_state()[newaxis]).numpy().squeeze()
             reward, reward_components = self.secondary_simulations[learner_name].step(percentage_allocation_solution=action)
 
-            self.table_stats.set(learner_name, 'Sum Rate', round(reward_components['sum rate'], 2))
-            self.table_stats.set(learner_name, 'Fairness', round(reward_components['fairness score'], 2))
-            self.table_stats.set(learner_name, 'TimeOuts', round(reward_components['prio jobs missed'], 2))
-            self.table_stats.set(learner_name, 'Overall', round(reward, 2))
+            instant_stats.append(
+                [
+                    reward_components['sum rate'],
+                    reward_components['fairness score'],
+                    reward_components['prio jobs missed'],
+                    reward
+                ]
+            )
 
             self.lifetime_stats[learner_name]['sumrate'].append(reward_components['sum rate'])
             self.lifetime_stats[learner_name]['fairness'].append(reward_components['fairness score'])
@@ -374,7 +390,7 @@ class App(tk.Tk):
             if mean_reward > self.maximum_reward_achieved:
                 self.maximum_reward_achieved = mean_reward
         self.ax.set_xlim([0, self.maximum_reward_achieved * 1.05])
-        for bar, value in zip(self.bars_primary, mean_rewards):
+        for bar, value in zip(reversed(self.bars_primary), mean_rewards):
             bar.set_width(value)
 
         self.canvas.draw()
@@ -392,6 +408,50 @@ class App(tk.Tk):
 
         self.countdown_value = self.config_gui.countdown_reset_value_seconds
         self.update_secondary_simulations()
+
+        self.ax_instant_stats.tables.pop(0)
+        instant_stats = np_round(array(instant_stats), 1)
+
+        cmaps = ['RdYlGn', 'RdYlGn', 'RdYlGn_r', 'RdYlGn']
+        colors = [[[0, 0, 0, 0] for _ in range(4)] for _ in range(4)]
+        for column_index, colormap in enumerate(cmaps):
+
+            column_stats = instant_stats[:, column_index].copy()
+            column_stats += min(column_stats)  # transform to positive space
+            if max(column_stats) > 0:
+                column_stats = column_stats / max(column_stats)  # transform to [0, 1]
+
+            # set color map
+            column_colors = colormaps[colormap](column_stats)
+
+            for column_color_id, column_color in enumerate(column_colors):
+                colors[column_color_id][column_index] = list(column_color)
+
+        self.draw_instant_stats_table(data=instant_stats, colors=colors)
+        self.canvas_instant_stats.draw()
+
+    def draw_instant_stats_table(
+            self,
+            data,
+            colors=None,
+    ) -> None:
+
+        if not colors:
+            colors = [['white']*4]*4
+
+        column_labels = ['Transmit', 'Fairness', 'Deaths', 'Overall']
+        row_labels = ['YOU', 'ML: Max Transmit', 'ML: Max Fairness', 'ML: Max Overall']
+        table_instant_stats = self.ax_instant_stats.table(
+            cellText=data,
+            cellColours=colors,
+            colLabels=column_labels,
+            rowLabels=row_labels,
+            rowLoc='right',
+            loc='center',
+        )
+        table_instant_stats.auto_set_font_size(False)
+        table_instant_stats.set_fontsize(11)
+        table_instant_stats.scale(xscale=1.1, yscale=1.5)  # scale cell boundaries
 
     def update_user_text_labels(
             self,
