@@ -420,8 +420,8 @@ class App(tk.Tk):
         instant_stats = np_round(array(instant_stats), 1)
 
         from matplotlib.colors import LinearSegmentedColormap
-        colormap = LinearSegmentedColormap.from_list('', [self.config_gui.cp3['red2'], self.config_gui.cp3['blue2']])
-        colormap_reversed = LinearSegmentedColormap.from_list('', [self.config_gui.cp3['blue2'], self.config_gui.cp3['red2']])
+        colormap = LinearSegmentedColormap.from_list('', [self.config_gui.cp3['red2'], self.config_gui.cp3['blue3'], self.config_gui.cp3['blue1']])
+        colormap_reversed = LinearSegmentedColormap.from_list('', [self.config_gui.cp3['blue1'], self.config_gui.cp3['blue3'], self.config_gui.cp3['red2']])
 
         cmaps = [colormap, colormap, colormap_reversed, colormap]
         colors = [[[0, 0, 0, 0] for _ in range(4)] for _ in range(4)]
