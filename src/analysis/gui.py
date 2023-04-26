@@ -196,7 +196,7 @@ class App(tk.Tk):
         ]
 
         for label_img_user in self.labels_img_users:
-            label_img_user.pack(anchor='w', pady=10)
+            label_img_user.pack(pady=10)
 
         self.labels_text_users = [
             tk.Label(subframe_user, **self.config_gui.label_user_text_config)
@@ -206,7 +206,7 @@ class App(tk.Tk):
         self.update_user_text_labels()
 
         for label_text_user in self.labels_text_users:
-            label_text_user.pack(anchor='w')
+            label_text_user.pack()
 
         # Buttons
         self.buttons_users = [
@@ -228,6 +228,11 @@ class App(tk.Tk):
             button.pack(side=tk.LEFT, expand=True)
 
         # Resource Grid
+        self.label_text_resource_grid = tk.Label(self.subframe_resource_grid,
+                                                 text='Resources',
+                                                 **self.config_gui.label_user_text_config)
+        self.label_text_resource_grid.pack(side=tk.TOP, pady=10)
+
         self.labels_resource_grid = [
             tk.Label(self.subframe_resource_grid, text='', **self.config_gui.label_resource_config)
             for _ in range(self.config.num_total_resource_slots)
@@ -465,7 +470,7 @@ class App(tk.Tk):
                 resources = self.sim_main.users[label_text_user_id].job.size_resource_slots
             else:
                 resources = 0
-            text = f'Wants: {resources}\n' \
+            text = f'Wants: {resources} Resources\n' \
                    f'Channel Strength: {channel_strength}'
             label_text_user.configure(text=text)
 
