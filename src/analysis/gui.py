@@ -151,6 +151,8 @@ class App(tk.Tk):
         self.images_logos = [
             Image.open('unilogo.png'),
             Image.open('ANT.png'),
+            Image.open('sponsoredbybmbf.png'),
+            Image.open('momentum.jpg'),
         ]
 
         self.tk_image_logos = [
