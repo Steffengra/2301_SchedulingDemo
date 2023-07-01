@@ -152,7 +152,8 @@ class App(tk.Tk):
             Image.open('unilogo.png'),
             Image.open('ANT.png'),
             Image.open('sponsoredbybmbf.png'),
-            Image.open('momentum.jpg'),
+            # Image.open('momentum.jpg'),
+            Image.open('FunKI_Logo_final_4C.png'),
         ]
 
         self.tk_image_logos = [
@@ -416,12 +417,13 @@ class App(tk.Tk):
         self.countdown_value = self.config_gui.countdown_reset_value_seconds
         self.update_secondary_simulations()
 
-        self.ax_instant_stats.tables.pop(0)
+        # self.ax_instant_stats.tables.pop(0)
+        self.ax_instant_stats.tables[0].remove()
         instant_stats = np_round(array(instant_stats), 1)
 
         from matplotlib.colors import LinearSegmentedColormap
-        colormap = LinearSegmentedColormap.from_list('', [self.config_gui.cp3['red2'], self.config_gui.cp3['blue3'], self.config_gui.cp3['blue1']])
-        colormap_reversed = LinearSegmentedColormap.from_list('', [self.config_gui.cp3['blue1'], self.config_gui.cp3['blue3'], self.config_gui.cp3['red2']])
+        colormap = LinearSegmentedColormap.from_list('', [self.config_gui.cp3['red2'], self.config_gui.cp3['blue3'], self.config_gui.cp3['blue2']])
+        colormap_reversed = LinearSegmentedColormap.from_list('', [self.config_gui.cp3['blue2'], self.config_gui.cp3['blue3'], self.config_gui.cp3['red2']])
 
         cmaps = [colormap, colormap, colormap_reversed, colormap]
         colors = [[[0, 0, 0, 0] for _ in range(4)] for _ in range(4)]
