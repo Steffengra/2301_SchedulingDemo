@@ -1,4 +1,10 @@
 
+from pathlib import Path
+from sys import path as sys_path
+
+project_root_path = Path(Path.cwd(), '..', '..')
+sys_path.append(str(project_root_path.resolve()))
+
 import tkinter as tk
 from tkinter import ttk
 from PIL import ImageTk, Image
@@ -149,11 +155,11 @@ class App(tk.Tk):
 
         # Logos
         self.images_logos = [
-            Image.open('unilogo.png'),
-            Image.open('ANT.png'),
-            Image.open('sponsoredbybmbf.png'),
-            # Image.open('momentum.jpg'),
-            Image.open('FunKI_Logo_final_4C.png'),
+            Image.open(Path(project_root_path, 'src', 'analysis', 'unilogo.png')),
+            Image.open(Path(project_root_path, 'src', 'analysis', 'ANT.png')),
+            Image.open(Path(project_root_path, 'src', 'analysis', 'sponsoredbybmbf.png')),
+            # Image.open(Path(project_root_path, 'src', 'analysis', 'momentum.jpg')),
+            Image.open(Path(project_root_path, 'src', 'analysis', 'FunKI_Logo_final_4C.png')),
         ]
 
         self.tk_image_logos = [
@@ -174,10 +180,10 @@ class App(tk.Tk):
 
         # Users
         self.images_users = [
-            Image.open('1.png'),
-            Image.open('2.png'),
-            Image.open('3.png'),
-            Image.open('whambulance.png')
+            Image.open(Path(project_root_path, 'src', 'analysis', '1.png')),
+            Image.open(Path(project_root_path, 'src', 'analysis', '2.png')),
+            Image.open(Path(project_root_path, 'src', 'analysis', '3.png')),
+            Image.open(Path(project_root_path, 'src', 'analysis', 'whambulance.png')),
         ]
 
         self.tk_images_users = [
