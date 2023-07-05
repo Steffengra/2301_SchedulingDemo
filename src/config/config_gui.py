@@ -25,7 +25,7 @@ class ConfigGUI:
         self.button_user_width = 6  # relative to font size
         self.button_user_height = 2  # relative to font size
 
-        self.button_panic_width = 3  # relative to font size
+        self.button_panic_width = 6  # relative to font size
         self.button_panic_height = 2  # relative to font size
         self.button_panic_color = self.cp3['white']
 
@@ -35,6 +35,7 @@ class ConfigGUI:
         self.label_resource_border_width = 2
 
         self.label_user_font = ('Arial', 25)
+        self.label_title_font = ('Arial', 60)
 
         self.countdown_reset_value_seconds: int = 10
 
@@ -98,6 +99,12 @@ class ConfigGUI:
 
         self.label_user_text_config = {
             'font': self.label_user_font,
+            'bg': 'white',
+            'justify': LEFT,
+        }
+
+        self.label_title_text_config = {
+            'font': self.label_title_font,
             'bg': 'white',
             'justify': LEFT,
         }

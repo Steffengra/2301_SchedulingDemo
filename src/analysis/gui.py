@@ -107,24 +107,19 @@ class App(tk.Tk):
     ) -> None:
 
         # Frames
-        self.frame_scenario = tk.Frame(master=self, width=.5 * self.window_width, height=.8 * self.window_height,
+        self.frame_scenario = tk.Frame(master=self, width=0.7 * self.window_width, height=1.0 * self.window_height,
                                        **self.config_gui.frames_config)
         self.frame_scenario.place(relx=0.0)
 
-        self.frame_resource_grid = tk.Frame(master=self, width=.2 * self.window_width, height=.8 * self.window_height,
+        self.frame_resource_grid = tk.Frame(master=self.frame_scenario, width=.15 * self.window_width, height=1.0 * self.window_height,
                                             **self.config_gui.frames_config)
-        self.frame_resource_grid.place(relx=0.5)
+        self.frame_resource_grid.place(relx=0.8)
         self.frame_resource_grid.pack_propagate(False)
 
         # make a subframe that holds all the resources, easier to center
         self.subframe_resource_grid = tk.Frame(master=self.frame_resource_grid,
                                                **self.config_gui.frames_config)
         self.subframe_resource_grid.pack(expand=True)
-
-        self.frame_buttons = tk.Frame(master=self, width=.7 * self.window_width, height=.2 * self.window_height,
-                                      **self.config_gui.frames_config)
-        self.frame_buttons.place(rely=0.8)
-        self.frame_buttons.pack_propagate(False)
 
         self.frame_stats = tk.Frame(master=self, width=.3 * self.window_width, height=1.0 * self.window_height,
                                     **self.config_gui.frames_config)
@@ -148,17 +143,17 @@ class App(tk.Tk):
             tk.Frame(master=self.frame_scenario, **self.config_gui.frames_config)
             for _ in range(4)
         ]
-        self.subframes_users[0].place(relx=0.1, rely=0.2)
-        self.subframes_users[1].place(relx=0.6, rely=0.15)
+        self.subframes_users[0].place(relx=0.1, rely=0.25)
+        self.subframes_users[1].place(relx=0.5, rely=0.2)
         self.subframes_users[2].place(relx=0.2, rely=0.7)
-        self.subframes_users[3].place(relx=0.5, rely=0.6)
+        self.subframes_users[3].place(relx=0.45, rely=0.6)
 
         # Logos
         self.images_logos = [
             Image.open(Path(project_root_path, 'src', 'analysis', 'unilogo.png')),
             Image.open(Path(project_root_path, 'src', 'analysis', 'ANT.png')),
             Image.open(Path(project_root_path, 'src', 'analysis', 'sponsoredbybmbf.png')),
-            # Image.open(Path(project_root_path, 'src', 'analysis', 'momentum.jpg')),
+            Image.open(Path(project_root_path, 'src', 'analysis', 'momentum.jpg')),
             Image.open(Path(project_root_path, 'src', 'analysis', 'FunKI_Logo_final_4C.png')),
         ]
 
@@ -201,6 +196,17 @@ class App(tk.Tk):
                      **self.config_gui.label_user_image_config)
             for user_id in range(4)
         ]
+        # Bind callbacks to the user images
+        for label, callback in zip(
+                self.labels_img_users,
+                [
+                    self.callback_button_user_0,
+                    self.callback_button_user_1,
+                    self.callback_button_user_2,
+                    self.callback_button_user_ambulance,
+
+                ]):
+            label.bind('<Button-1>', callback)
 
         for label_img_user in self.labels_img_users:
             label_img_user.pack(pady=10)
@@ -253,8 +259,12 @@ class App(tk.Tk):
         self.separator_vertical.place(relx=0.7, rely=0, relwidth=0.0, relheight=1)
 
         # Countdown Button
-        self.button_timer = tk.Button(self.subframe_countdown_button, text='⏱', command=self.callback_button_timer,
-                                      **self.config_gui.button_panic_config)
+        self.button_timer = tk.Button(
+            self.subframe_countdown_button,
+            text='⏱',
+            command=self.callback_button_timer,
+            borderwidth=30,
+            **self.config_gui.button_panic_config)
         self.button_timer.pack(side=tk.TOP, fill=tk.BOTH)
 
         # Instant Stats
@@ -331,21 +341,25 @@ class App(tk.Tk):
 
     def callback_button_user_0(
             self,
+            event,
     ) -> None:
         self.allocate_resource(user_id=0)
 
     def callback_button_user_1(
             self,
+            event,
     ) -> None:
         self.allocate_resource(user_id=1)
 
     def callback_button_user_2(
             self,
+            event,
     ) -> None:
         self.allocate_resource(user_id=2)
 
     def callback_button_user_ambulance(
             self,
+            event,
     ) -> None:
         self.allocate_resource(user_id=3)
 
