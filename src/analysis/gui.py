@@ -225,25 +225,6 @@ class App(tk.Tk):
         for label_text_user in self.labels_text_users:
             label_text_user.pack()
 
-        # Buttons
-        self.buttons_users = [
-            tk.Button(self.frame_buttons, text='1', command=self.callback_button_user_0,
-                      bg=self.config_gui.user_colors[0],
-                      **self.config_gui.button_user_config),
-            tk.Button(self.frame_buttons, text='2', command=self.callback_button_user_1,
-                      bg=self.config_gui.user_colors[1],
-                      **self.config_gui.button_user_config),
-            tk.Button(self.frame_buttons, text='3', command=self.callback_button_user_2,
-                      bg=self.config_gui.user_colors[2],
-                      **self.config_gui.button_user_config),
-            tk.Button(self.frame_buttons, text='A', command=self.callback_button_user_ambulance,
-                      bg=self.config_gui.user_colors[3],
-                      **self.config_gui.button_user_config),
-        ]
-
-        for button in self.buttons_users:
-            button.pack(side=tk.LEFT, expand=True)
-
         # Resource Grid
         self.label_text_resource_grid = tk.Label(self.subframe_resource_grid,
                                                  text='Resources',
