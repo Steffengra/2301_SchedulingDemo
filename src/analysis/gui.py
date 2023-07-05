@@ -173,6 +173,10 @@ class App(tk.Tk):
         for label_img_logo in self.labels_img_logos:
             label_img_logo.pack(side=tk.LEFT, padx=10, pady=10)
 
+        # Title Line
+        self.label_title = tk.Label(self.frame_scenario, text='Play vs. AI!', **self.config_gui.label_title_text_config)
+        self.label_title.place(relx=0.02, rely=0.12)
+
         # Users
         self.images_users = [
             Image.open(Path(project_root_path, 'src', 'analysis', '1.png')),
