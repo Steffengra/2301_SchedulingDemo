@@ -97,6 +97,7 @@ class App(tk.Tk):
         self.maximum_reward_achieved = 0.1
 
         # ARITHMETIC
+        self.channel_img_height = int(self.config_gui.label_user_font[1]*1.2)
         self.label_img_height = int(self.config_gui.label_img_users_height_scale * self.window_height)
         self.logo_img_height = int(self.config_gui.label_img_logos_height_scale * self.window_height)
 
@@ -178,6 +179,20 @@ class App(tk.Tk):
         self.label_title.place(relx=0.02, rely=0.12)
 
         # Users
+        self.images_channelstrength = [
+            Image.open(Path(project_root_path, 'src', 'analysis', 'low.png')),
+            Image.open(Path(project_root_path, 'src', 'analysis', 'medlow.png')),
+            Image.open(Path(project_root_path, 'src', 'analysis', 'medhigh.png')),
+            Image.open(Path(project_root_path, 'src', 'analysis', 'high.png')),
+        ]
+        self.tk_images_channel_strength = [
+            ImageTk.PhotoImage(image_channel_strength.resize((
+                get_width_rescale_constant_aspect_ratio(image_channel_strength, self.channel_img_height),
+                self.channel_img_height,
+            )))
+            for image_channel_strength in self.images_channelstrength
+        ]
+
         self.images_users = [
             Image.open(Path(project_root_path, 'src', 'analysis', '1.png')),
             Image.open(Path(project_root_path, 'src', 'analysis', '2.png')),
@@ -215,14 +230,20 @@ class App(tk.Tk):
         for label_img_user in self.labels_img_users:
             label_img_user.pack(pady=10)
 
-        self.labels_text_users = [
+        self.labels_text_users_wants = [
+            tk.Label(subframe_user, **self.config_gui.label_user_text_config)
+            for subframe_user in self.subframes_users
+        ]
+        self.labels_text_users_channel_strength = [
             tk.Label(subframe_user, **self.config_gui.label_user_text_config)
             for subframe_user in self.subframes_users
         ]
 
         self.update_user_text_labels()
 
-        for label_text_user in self.labels_text_users:
+        for label_text_user in self.labels_text_users_wants:
+            label_text_user.pack()
+        for label_text_user in self.labels_text_users_channel_strength:
             label_text_user.pack()
 
         # Resource Grid
@@ -471,19 +492,41 @@ class App(tk.Tk):
         table_instant_stats.set_fontsize(11)
         table_instant_stats.scale(xscale=1.1, yscale=1.5)  # scale cell boundaries
 
+    def get_channel_strength_image(
+            self,
+            channel_strength,
+    ) -> tk.PhotoImage:
+
+        if channel_strength >= 16:
+            return self.tk_images_channel_strength[3]
+        elif channel_strength >= 9:
+            return self.tk_images_channel_strength[2]
+        elif channel_strength >= 3:
+            return self.tk_images_channel_strength[1]
+        elif channel_strength >= 1:
+            return self.tk_images_channel_strength[0]
+        else:
+            raise Exception('Unexpected channel strength')
+
     def update_user_text_labels(
             self,
     ) -> None:
-
-        for label_text_user_id, label_text_user in enumerate(self.labels_text_users):
-            channel_strength = self.sim_main.users[label_text_user_id].power_gain
+        # Resource Wants
+        for label_text_user_id, label_text_user in enumerate(self.labels_text_users_wants):
             if self.sim_main.users[label_text_user_id].job:
                 resources = self.sim_main.users[label_text_user_id].job.size_resource_slots
             else:
                 resources = 0
-            text = f'Wants: {resources} Resources\n' \
-                   f'Channel Strength: {channel_strength}'
+            text = f'Wants: {resources} Resources'
             label_text_user.configure(text=text)
+        # Channel Strength                          )
+        for label_text_user_id, label_text_user in enumerate(self.labels_text_users_channel_strength):
+            channel_strength = self.sim_main.users[label_text_user_id].power_gain
+            text = 'Channel: '
+            label_text_user.configure(text=text,
+                                      image=self.get_channel_strength_image(channel_strength),
+                                      compound=tk.RIGHT
+                                      )
 
     def update_secondary_simulations(
             self,
