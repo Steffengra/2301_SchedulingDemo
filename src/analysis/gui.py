@@ -265,12 +265,22 @@ class App(tk.Tk):
         self.separator_vertical.place(relx=0.7, rely=0, relwidth=0.0, relheight=1)
 
         # Countdown Button
+        self.image_stopwatch = Image.open(Path(project_root_path, 'src', 'analysis', 'stopwatch.png'))
+        self.tk_image_stopwatch = ImageTk.PhotoImage(self.image_stopwatch.resize((
+                get_width_rescale_constant_aspect_ratio(self.image_stopwatch, self.label_img_height),
+                self.label_img_height,
+            )))
+        self.pixel = tk.PhotoImage(width=1, height=1)  # workaround so button doesn't resize on click
+
         self.button_timer = tk.Button(
             self.subframe_countdown_button,
-            text='⏱',
+            text='',
+            image=self.tk_image_stopwatch,
+            compound=tk.CENTER,
             command=self.callback_button_timer,
             borderwidth=30,
-            **self.config_gui.button_panic_config)
+            **self.config_gui.button_panic_config
+        )
         self.button_timer.pack(side=tk.TOP, fill=tk.BOTH)
 
         # Instant Stats
@@ -330,7 +340,7 @@ class App(tk.Tk):
                 self.countdown_value = self.config_gui.countdown_reset_value_seconds
 
             self.countdown_value -= 1
-            self.button_timer.configure(text=self.countdown_value)
+            self.button_timer.configure(text=f'{self.countdown_value}', image=self.pixel)  # workaround so button doesn't resize on click
             self.after(1000, self.check_loop)
 
     def callback_button_timer(
@@ -343,7 +353,7 @@ class App(tk.Tk):
             self.after(1000, self.check_loop)
 
         if not self.countdown_toggle:
-            self.button_timer.configure(text='⏱')
+            self.button_timer.configure(text='', image=self.tk_image_stopwatch)
 
     def callback_button_user_0(
             self,

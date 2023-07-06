@@ -25,8 +25,8 @@ class ConfigGUI:
         self.button_user_width = 6  # relative to font size
         self.button_user_height = 2  # relative to font size
 
-        self.button_panic_width = 6  # relative to font size
-        self.button_panic_height = 2  # relative to font size
+        self.button_panic_width = 190  # relative to image size
+        self.button_panic_height = 190  # relative to image size
         self.button_panic_color = self.cp3['white']
 
         self.label_resource_font = ('Arial', 50)
