@@ -8,7 +8,6 @@ venv/
 /data/
 /outputs/
 /references/
-/reports/
 /scr/analysis/
 /src/notebooks/
 /src/tests/
