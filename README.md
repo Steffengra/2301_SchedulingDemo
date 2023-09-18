@@ -5,6 +5,7 @@ The user can compare themselves to three AI algorithms in optimizing system metr
 currently sum rate, fairness, ambulance timeouts, and mixed performance, by intelligent resource scheduling.
 There is also a countdown challenge mode.
 
+The relevant file to start the GUI demo is `src/analysis/gui.py`
 ### How does it work?
 - Users want x number of resources -> allocating more than that has no benefit
 - Users have a channel strength -> One resource at better channel leads to more "throughput"
@@ -17,7 +18,6 @@ There is also a countdown challenge mode.
 - Three AI schedulers are implemented for comparison: one tries to maximize throughput, one fairness, one overall. Their results are shown in the center table
 - The lower graph compares all scheduler's average results on the overall metric since starting the demo.
 
-The relevant file to start the GUI demo is src/analysis/gui.py
 
 ### Talking points:
 - What is optimization criterion? Data Throughput? Fairness (How do we define that?)?
