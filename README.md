@@ -29,16 +29,18 @@ Trial and error, just like the player would when playing the demo
 the fairest allocation etc. This is not immediately obvious -> we must be mindful of that when applying AI
 algorithms in practice
 
-#### Folder Structure
+### Folder Structure:
 
-|                  |                                                  |
-|------------------|--------------------------------------------------|
-| models           | trained models                                   |
-| src              |                                                  |
-| ├─ analysis      | GUI                                              |
-| ├─ config        | configuration files                              |
-| ├─ data          | data generation, loading, etc.                   |
-| └─ models        | model training and inference                     |
-| .gitignore       | .gitignore                                       |
-| README.md        | readme                                           |
-| requirements.txt | pip freeze > requirements.txt                    |
+```
+|   .gitignore          | .gitignore
+|   README.md           | this file
+|   requirements.txt    | project dependencies
+|           
++---models              | pre-trained models
++---reports             | related material
++---src                 | code
+|   +---analysis        |   GUI related
+|   +---config          |   configuration files
+|   +---data            |   simulation related
+|   +---models          |   learning related
+```
