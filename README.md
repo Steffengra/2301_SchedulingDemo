@@ -47,3 +47,6 @@ algorithms in practice
 |   +---data            |   simulation related
 |   +---models          |   learning related
 ```
+
+### Known Issues:
+- Fonts will sometimes look ugly. Could be due to using conda which does not build TrueType fonts (["Why not use something more modern than tk?"](https://github.com/ContinuumIO/anaconda-issues/issues/6833)). Bundling a font file does not seem feasible either.
