@@ -21,7 +21,11 @@ class ConfigGUI:
         self.label_img_logos_height_scale = 0.07
         self.label_img_users_border_width = 15
 
+        self.table_instant_stats_font_size = 11
+        self.label_allocations_titles_font = ('Arial', 15)
+
         self.button_font = ('Arial', 50)
+        self.button_screen_selector_font = ('Arial', 25)
         self.button_user_width = 6  # relative to font size
         self.button_user_height = 2  # relative to font size
 
@@ -33,6 +37,7 @@ class ConfigGUI:
         self.label_resource_width = 3  # relative to font size
         self.label_resource_height = 1  # relative to font size
         self.label_resource_border_width = 2
+        self.label_resource_small_scaling: float = 0.5
 
         self.label_user_font = ('Arial', 25)
         self.label_title_font = ('Arial', 60)
@@ -50,9 +55,12 @@ class ConfigGUI:
             'sumrate': load_model(Path(self.models_path, 'max_sumrate', 'policy')),
             'fairness': load_model(Path(self.models_path, 'fairness', 'policy_snap_0.914')),
             'mixed': load_model(Path(self.models_path, 'mixed', 'policy_snap_1.020')),
-            # 'sumrate': 1,
-            # 'fairness': 1,
-            # 'mixed': 1,
+        }
+        self.own_allocation_display_name = 'YOU'
+        self.learned_agents_display_names = {
+            'sumrate': 'ML: Max Transmit',
+            'fairness': 'ML: Max Fairness',
+            'mixed': 'ML: Max Overall',
         }
 
         self._post_init()
@@ -69,6 +77,13 @@ class ConfigGUI:
     def _post_init(
             self,
     ) -> None:
+
+        self.button_screen_selector_config = {
+            'font': self.button_screen_selector_font,
+            'width': 15,
+            'borderwidth': 3,
+            'bg': 'white',
+        }
 
         self.button_panic_config = {
             'font': self.button_font,
@@ -91,10 +106,19 @@ class ConfigGUI:
             'borderwidth': self.label_resource_border_width,
             'bg': 'white',
         }
+        self.label_resource_small_config = self.label_resource_config.copy()
+        self.label_resource_small_config['font'] = (self.label_resource_font[0], int(self.label_resource_small_scaling * self.label_resource_font[1]))
 
         self.label_user_image_config = {
             'bg': 'white',
             'highlightthickness': self.label_img_users_border_width,
+        }
+
+        self.label_allocations_titles_config = {
+            'font': self.label_allocations_titles_font,
+            'height': 2,
+            'wraplength': 100,
+            'bg': 'white',
         }
 
         self.label_user_text_config = {
@@ -119,6 +143,8 @@ class ConfigGUI:
             'font': self.label_user_font,
             'bg': 'white',
         }
+
+        self.allocator_names = [self.own_allocation_display_name] + list(self.learned_agents_display_names.values())
 
     def _load_palettes(
             self,

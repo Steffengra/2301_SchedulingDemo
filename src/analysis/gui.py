@@ -15,6 +15,7 @@ from numpy import (
     mean,
     round as np_round,
 )
+import numpy as np
 
 from matplotlib.backends.backend_tkagg import (
     FigureCanvasTkAgg,
@@ -117,14 +118,43 @@ class App(tk.Tk):
         self.frame_resource_grid.place(relx=0.8)
         self.frame_resource_grid.pack_propagate(False)
 
+        self.frame_screen_selector = tk.Frame(master=self, width=0.3 * self.window_width, height=0.1 * self.window_height, **self.config_gui.frames_config)
+        self.frame_screen_selector.place(relx=.7)
+        self.frame_screen_selector.pack_propagate(False)
+
         # make a subframe that holds all the resources, easier to center
         self.subframe_resource_grid = tk.Frame(master=self.frame_resource_grid,
                                                **self.config_gui.frames_config)
         self.subframe_resource_grid.pack(expand=True)
 
-        self.frame_stats = tk.Frame(master=self, width=.3 * self.window_width, height=1.0 * self.window_height,
+        # subframe results allocation, rhs of screen, swaps with stats subframe
+        self.frame_results = tk.Frame(master=self, width=.3 * self.window_width, height=0.9 * self.window_height,
+                                      **self.config_gui.frames_config)
+        self.frame_results.place(relx=.7, rely=.1)
+        self.frame_results.pack_propagate(False)
+        self.subframe_allocations_results = tk.Frame(master=self.frame_results, height=0.7 * self.window_height, **self.config_gui.frames_config)
+        self.subframe_instant_stats_results = tk.Frame(master=self.frame_results, **self.config_gui.frames_config)
+        self.separator_after_allocations = ttk.Separator(self.frame_results, orient='horizontal')
+        self.subframe_allocations_results.pack(expand=True)
+        self.separator_after_allocations.pack(fill=tk.X)
+        self.subframe_instant_stats_results.pack()
+
+        self.label_results_title = tk.Label(self.subframe_allocations_results, text='Last Allocations', **self.config_gui.labels_config)
+        self.label_results_title.pack(expand=True, ipady=5)
+        self.subframe_allocations = tk.Frame(master=self.subframe_allocations_results, **self.config_gui.frames_config)
+        self.subframe_allocations.pack(expand=True)
+
+        self.subframes_allocations = {
+            allocator_name: tk.Frame(master=self.subframe_allocations, **self.config_gui.frames_config)
+            for allocator_name in self.config_gui.allocator_names
+        }
+        for subframe_allocation in self.subframes_allocations.values():
+            subframe_allocation.pack(side=tk.LEFT, padx=20)
+
+        # subframe stats, rhs of screen, swaps with subframe allocation results
+        self.frame_stats = tk.Frame(master=self, width=.3 * self.window_width, height=0.9 * self.window_height,
                                     **self.config_gui.frames_config)
-        self.frame_stats.place(relx=.7)
+        self.frame_stats.place(relx=.7, rely=0.1)
         self.frame_stats.pack_propagate(False)
         self.subframe_countdown_button = tk.Frame(master=self.frame_stats, **self.config_gui.frames_config)
         self.subframe_instant_stats = tk.Frame(master=self.frame_stats, **self.config_gui.frames_config)
@@ -133,9 +163,14 @@ class App(tk.Tk):
         self.separator_after_instant_stats = ttk.Separator(self.frame_stats, orient='horizontal')
         self.subframe_countdown_button.pack(expand=True)
         self.separator_after_countdown.pack(fill=tk.X, expand=True)
-        self.subframe_instant_stats.pack(expand=True)
-        self.separator_after_instant_stats.pack(fill=tk.X, expand=True)
         self.subframe_lifetime_stats.pack(expand=True)
+        self.separator_after_instant_stats.pack(fill=tk.X, expand=True)
+        self.subframe_instant_stats.pack()
+
+        self.selectable_frames = {
+            'AllocationResults': self.frame_stats,
+            'Stats': self.frame_results,
+        }
 
         self.subframe_logos = tk.Frame(master=self.frame_scenario, **self.config_gui.frames_config)
         self.subframe_logos.place(relx=0.0, rely=0.0)
@@ -148,6 +183,25 @@ class App(tk.Tk):
         self.subframes_users[1].place(relx=0.5, rely=0.2)
         self.subframes_users[2].place(relx=0.2, rely=0.7)
         self.subframes_users[3].place(relx=0.45, rely=0.6)
+
+        # screen change buttons
+        self.selected_value_radio_buttons = ''
+        self.screen_selector_button_allocations = tk.Button(
+            self.frame_screen_selector,
+            text='Allocations',
+            compound=tk.CENTER,
+            command=self.change_to_frame_allocations,
+            **self.config_gui.button_screen_selector_config
+        )
+        self.screen_selector_button_stats = tk.Button(
+            self.frame_screen_selector,
+            text='Statistics',
+            compound=tk.CENTER,
+            command=self.change_to_frame_stats,
+            **self.config_gui.button_screen_selector_config
+        )
+        self.screen_selector_button_allocations.pack(side=tk.LEFT, expand=True, fill=tk.BOTH)
+        self.screen_selector_button_stats.pack(side=tk.LEFT, expand=True, fill=tk.BOTH)
 
         # Logos
         self.images_logos = [
@@ -246,7 +300,7 @@ class App(tk.Tk):
         for label_text_user in self.labels_text_users_channel_strength:
             label_text_user.pack()
 
-        # Resource Grid
+        # Resource Grid main
         self.label_text_resource_grid = tk.Label(self.subframe_resource_grid,
                                                  text='Resources',
                                                  **self.config_gui.label_user_text_config)
@@ -261,7 +315,7 @@ class App(tk.Tk):
             self.labels_resource_grid[label_resource_grid_id].pack(side=tk.TOP)
 
         # Separator Vertical
-        self.separator_vertical = ttk.Separator(orient='vertical')
+        self.separator_vertical = ttk.Separator(self, orient='vertical')
         self.separator_vertical.place(relx=0.7, rely=0, relwidth=0.0, relheight=1)
 
         # Countdown Button
@@ -293,7 +347,7 @@ class App(tk.Tk):
         self.ax_instant_stats.axis('off')
 
         data = array([[0]*4]*4)
-        self.draw_instant_stats_table(data=data)
+        self.draw_instant_stats_table(data=data, ax=self.ax_instant_stats)
         self.fig_instant_stats.tight_layout()
 
         self.canvas_instant_stats = FigureCanvasTkAgg(self.fig_instant_stats, master=self.subframe_instant_stats)
@@ -318,7 +372,7 @@ class App(tk.Tk):
             edgecolor='black',
         )
         self.ax.set_xlim([0, 40])
-        self.ax.set_yticks([0, 1, 2, 3], reversed(['YOU', 'ML: Max Transmit', 'ML: Max Fairness', 'ML: Max Overall']), fontsize=11)
+        self.ax.set_yticks([0, 1, 2, 3], reversed(self.config_gui.allocator_names), fontsize=11)
         self.ax.spines['top'].set_visible(False)
         self.ax.spines['right'].set_visible(False)
         self.ax.spines['bottom'].set_visible(False)
@@ -329,6 +383,43 @@ class App(tk.Tk):
         self.canvas.draw()
 
         self.canvas.get_tk_widget().pack(side=tk.TOP)
+
+        # Allocation Resource Grids
+        self.labels_allocation_resource_grids = {
+            allocator_name: [
+                tk.Label(allocator_subframe, text='', **self.config_gui.label_resource_small_config)
+                for _ in range(self.config.num_total_resource_slots)
+            ]
+            for allocator_name, allocator_subframe in self.subframes_allocations.items()
+        }
+        self.labels_allocation_title = {
+            tk.Label(allocator_subframe, text=allocator_name, **self.config_gui.label_allocations_titles_config)
+            for allocator_name, allocator_subframe in self.subframes_allocations.items()
+        }
+        for label_allocation_resource_grid in self.labels_allocation_resource_grids.values():
+            for label_resource_grid_id in range(len(label_allocation_resource_grid)):
+                label_allocation_resource_grid[label_resource_grid_id].pack(side=tk.TOP)
+        for label_allocation_title in self.labels_allocation_title:
+            label_allocation_title.pack(side=tk.TOP, expand=True, fill=tk.BOTH)
+
+        # Instant Stats allocation
+        self.label_instant_stats_results = tk.Label(self.subframe_instant_stats_results, text='Scores',
+                                                    **self.config_gui.labels_config)
+        self.label_instant_stats_results.pack()
+
+        self.fig_instant_stats_results = Figure(figsize=(5.5, 1.8))
+        self.ax_instant_stats_results = self.fig_instant_stats_results.add_subplot()
+        self.ax_instant_stats_results.axis('tight')
+        self.ax_instant_stats_results.axis('off')
+
+        data = array([[0] * 4] * 4)
+        self.draw_instant_stats_table(data=data, ax=self.ax_instant_stats_results)
+        self.fig_instant_stats_results.tight_layout()
+
+        self.canvas_instant_stats_results = FigureCanvasTkAgg(self.fig_instant_stats_results, master=self.subframe_instant_stats_results)
+        self.canvas_instant_stats_results.draw()
+
+        self.canvas_instant_stats_results.get_tk_widget().pack(expand=True)
 
     def check_loop(
             self,
@@ -342,6 +433,21 @@ class App(tk.Tk):
             self.countdown_value -= 1
             self.button_timer.configure(text=f'{self.countdown_value}', image=self.pixel)  # workaround so button doesn't resize on click
             self.after(1000, self.check_loop)
+
+    def change_to_frame_allocations(
+            self,
+    ) -> None:
+
+        for frame in self.selectable_frames.values():
+            self.frame_results.tkraise(aboveThis=frame)
+
+    def change_to_frame_stats(
+            self,
+    ) -> None:
+
+        for frame in self.selectable_frames.values():
+            self.frame_stats.tkraise(aboveThis=frame)
+
 
     def callback_button_timer(
             self,
@@ -390,11 +496,32 @@ class App(tk.Tk):
         if self.current_resource_pointer == self.config.num_total_resource_slots:
             self.after(100, self.evaluate_allocation)
 
+    def fill_resource_grid(
+            self,
+            resource_grid: list,
+            allocation: dict,
+    ) -> None:
+
+        for resource_id in range(self.config.num_total_resource_slots):
+            resource_grid[resource_id].config(bg='white')
+
+        resource_pointer = 0
+        for user_id, number_of_resources in allocation.items():
+            for resource_number in range(int(number_of_resources)):
+                resource_grid[resource_pointer].config(bg=self.config_gui.user_colors[user_id])
+                resource_pointer += 1
+
+
     def evaluate_allocation(
             self,
     ) -> None:
+
+        # get own action
         action = array(list(self.resources_per_user.values())) / self.config.num_total_resource_slots
         action = action.astype('float32')
+        self.fill_resource_grid(resource_grid=self.labels_allocation_resource_grids[self.config_gui.allocator_names[0]],
+                                allocation=self.get_allocated_slots(percentage_allocation_solution=action,
+                                                                    sim=self.sim_main))
         reward, reward_components = self.sim_main.step(percentage_allocation_solution=action)
 
         instant_stats = [[
@@ -409,8 +536,13 @@ class App(tk.Tk):
         self.lifetime_stats['self']['timeouts'].append(reward_components['prio jobs missed'])
         self.lifetime_stats['self']['overall'].append(reward)
 
+        # get learner actions
         for learner_name, learner in self.config_gui.learned_agents.items():
             action = learner.call(self.secondary_simulations[learner_name].get_state()[newaxis]).numpy().squeeze()
+            self.fill_resource_grid(resource_grid=self.labels_allocation_resource_grids[self.config_gui.learned_agents_display_names[learner_name]],
+                                    allocation=self.get_allocated_slots(percentage_allocation_solution=action,
+                                                                        sim=self.secondary_simulations[learner_name]))
+
             reward, reward_components = self.secondary_simulations[learner_name].step(percentage_allocation_solution=action)
 
             instant_stats.append(
@@ -453,8 +585,8 @@ class App(tk.Tk):
         self.countdown_value = self.config_gui.countdown_reset_value_seconds
         self.update_secondary_simulations()
 
-        # self.ax_instant_stats.tables.pop(0)
         self.ax_instant_stats.tables[0].remove()
+        self.ax_instant_stats_results.tables[0].remove()
         instant_stats = np_round(array(instant_stats), 1)
 
         from matplotlib.colors import LinearSegmentedColormap
@@ -476,12 +608,15 @@ class App(tk.Tk):
             for column_color_id, column_color in enumerate(column_colors):
                 colors[column_color_id][column_index] = list(column_color)
 
-        self.draw_instant_stats_table(data=instant_stats, colors=colors)
+        self.draw_instant_stats_table(data=instant_stats, ax=self.ax_instant_stats, colors=colors)
+        self.draw_instant_stats_table(data=instant_stats, ax=self.ax_instant_stats_results, colors=colors)
         self.canvas_instant_stats.draw()
+        self.canvas_instant_stats_results.draw()
 
     def draw_instant_stats_table(
             self,
             data,
+            ax,
             colors=None,
     ) -> None:
 
@@ -489,8 +624,8 @@ class App(tk.Tk):
             colors = [['white']*4]*4
 
         column_labels = ['Transmit', 'Fairness', 'Deaths', 'Overall']
-        row_labels = ['YOU', 'ML: Max Transmit', 'ML: Max Fairness', 'ML: Max Overall']
-        table_instant_stats = self.ax_instant_stats.table(
+        row_labels = self.config_gui.allocator_names
+        table_instant_stats = ax.table(
             cellText=data,
             cellColours=colors,
             colLabels=column_labels,
@@ -499,7 +634,7 @@ class App(tk.Tk):
             loc='center',
         )
         table_instant_stats.auto_set_font_size(False)
-        table_instant_stats.set_fontsize(11)
+        table_instant_stats.set_fontsize(self.config_gui.table_instant_stats_font_size)
         table_instant_stats.scale(xscale=1.1, yscale=1.5)  # scale cell boundaries
 
     def get_channel_strength_image(
@@ -544,6 +679,40 @@ class App(tk.Tk):
 
         for sec_sim in self.secondary_simulations.values():
             sec_sim.import_state(state=self.sim_main.export_state())
+
+    def get_allocated_slots(
+            self,
+            percentage_allocation_solution: np.ndarray,
+            sim,
+    ):
+        requested_slots_per_ue = [
+            sim.users[ue_id].job.size_resource_slots if sim.users[ue_id].job else 0
+            for ue_id in range(len(sim.users))
+        ]
+
+        slot_allocation_solution = [
+            np.minimum(
+                np_round(percentage_allocation_solution[ue_id] * self.config.num_total_resource_slots),
+                requested_slots_per_ue[ue_id],
+                dtype='float32'
+            )
+            for ue_id in range(len(sim.users))
+        ]
+        # Check if the rounding has resulted in more resources distributed than available
+        if sum(slot_allocation_solution) > sim.resource_grid.total_resource_slots:
+            # if so, remove one resource from a random user
+            while sum(slot_allocation_solution) > sim.resource_grid.total_resource_slots:
+                random_user_id = self.config.rng.integers(0, len(sim.users))
+                if slot_allocation_solution[random_user_id] > 0:
+                    slot_allocation_solution[random_user_id] -= 1
+
+        # prepare the allocated slots per ue for metrics calculation
+        allocated_slots_per_ue: dict = {
+                ue_id: slot_allocation_solution[ue_id]
+                for ue_id in range(len(sim.users))
+        }
+
+        return allocated_slots_per_ue
 
 
 if __name__ == '__main__':
