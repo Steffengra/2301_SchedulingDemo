@@ -7,7 +7,7 @@ There is also a countdown challenge mode.
 
 The relevant file to start the GUI demo is `src/analysis/gui.py`
 
-![screenshot.png](reports/.png)
+![screenshot.png](reports/screenshot.png)
 
 ### How does it work?
 - Users want x number of resources -> allocating more than that has no benefit
