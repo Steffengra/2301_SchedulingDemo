@@ -101,6 +101,7 @@ class App(tk.Tk):
         self.channel_img_height = int(self.config_gui.label_user_font[1]*1.2)
         self.label_img_height = int(self.config_gui.label_img_users_height_scale * self.window_height)
         self.logo_img_height = int(self.config_gui.label_img_logos_height_scale * self.window_height)
+        self.label_base_station_height = int(self.config_gui.label_img_base_station_height_scale * self.window_height)
 
         self._gui_setup()
 
@@ -184,6 +185,9 @@ class App(tk.Tk):
         self.subframes_users[2].place(relx=0.2, rely=0.7)
         self.subframes_users[3].place(relx=0.45, rely=0.6)
 
+        self.subframe_base_station = tk.Frame(master=self.frame_scenario, **self.config_gui.frames_config)
+        self.subframe_base_station.place(relx=0.01, rely=0.55)
+
         # screen change buttons
         self.selected_value_radio_buttons = ''
         self.screen_selector_button_allocations = tk.Button(
@@ -246,6 +250,18 @@ class App(tk.Tk):
             )))
             for image_channel_strength in self.images_channelstrength
         ]
+
+        self.image_base_station = Image.open(Path(project_root_path, 'src', 'analysis', 'base_station.png'))
+        self.tk_image_base_station = ImageTk.PhotoImage(self.image_base_station.resize((
+            get_width_rescale_constant_aspect_ratio(self.image_base_station, self.label_base_station_height),
+            self.label_base_station_height,
+        )))
+        self.label_image_base_station = tk.Label(
+            self.subframe_base_station,
+            image=self.tk_image_base_station,
+            bg='white',
+        )
+        self.label_image_base_station.pack()
 
         self.images_users = [
             Image.open(Path(project_root_path, 'src', 'analysis', '1.png')),

@@ -19,6 +19,7 @@ class ConfigGUI:
 
         self.label_img_users_height_scale = 0.1
         self.label_img_logos_height_scale = 0.07
+        self.label_img_base_station_height_scale = 0.25
         self.label_img_users_border_width = 15
 
         self.table_instant_stats_font_size = 11
