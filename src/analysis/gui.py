@@ -555,7 +555,6 @@ class App(tk.Tk):
         # get learner actions
         for learner_name, learner in self.config_gui.learned_agents.items():
             action = learner.call(self.secondary_simulations[learner_name].get_state()[newaxis]).numpy().squeeze()
-            print(learner_name)
             self.fill_resource_grid(resource_grid=self.labels_allocation_resource_grids[self.config_gui.learned_agents_display_names[learner_name]],
                                     allocation=self.get_allocated_slots(percentage_allocation_solution=action,
                                                                         sim=self.secondary_simulations[learner_name]))
