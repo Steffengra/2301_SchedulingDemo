@@ -555,6 +555,7 @@ class App(tk.Tk):
         # get learner actions
         for learner_name, learner in self.config_gui.learned_agents.items():
             action = learner.call(self.secondary_simulations[learner_name].get_state()[newaxis]).numpy().squeeze()
+            print(learner_name)
             self.fill_resource_grid(resource_grid=self.labels_allocation_resource_grids[self.config_gui.learned_agents_display_names[learner_name]],
                                     allocation=self.get_allocated_slots(percentage_allocation_solution=action,
                                                                         sim=self.secondary_simulations[learner_name]))
@@ -714,6 +715,19 @@ class App(tk.Tk):
             )
             for ue_id in range(len(sim.users))
         ]
+
+        # grant at most one additional resource if there was rounding down
+        if sum(slot_allocation_solution) == sim.resource_grid.total_resource_slots - 1:
+            remainders = [
+                percentage_allocation_solution[ue_id] * sim.resource_grid.total_resource_slots - slot_allocation_solution[ue_id]
+                for ue_id in range(len(sim.users))
+            ]
+            for ue_id in range(len(sim.users)):
+                if remainders[ue_id] > 0:
+                    if requested_slots_per_ue[ue_id] > slot_allocation_solution[ue_id]:
+                        slot_allocation_solution[ue_id] += 1
+                        break
+
         # Check if the rounding has resulted in more resources distributed than available
         if sum(slot_allocation_solution) > sim.resource_grid.total_resource_slots:
             # if so, remove one resource from a random user

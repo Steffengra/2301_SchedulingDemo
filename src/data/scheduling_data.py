@@ -120,6 +120,19 @@ class SchedulingData:
             )
             for ue_id in range(len(self.users))
         ]
+
+        # grant at most one additional resource if there was rounding down
+        if sum(slot_allocation_solution) == self.resource_grid.total_resource_slots - 1:
+            remainders = [
+                percentage_allocation_solution[ue_id] * self.resource_grid.total_resource_slots - slot_allocation_solution[ue_id]
+                for ue_id in range(len(self.users))
+            ]
+            for ue_id in range(len(self.users)):
+                if remainders[ue_id] > 0:
+                    if requested_slots_per_ue[ue_id] > slot_allocation_solution[ue_id]:
+                        slot_allocation_solution[ue_id] += 1
+                        break
+
         # Check if the rounding has resulted in more resources distributed than available
         if sum(slot_allocation_solution) > self.resource_grid.total_resource_slots:
             # if so, remove one resource from a random user
