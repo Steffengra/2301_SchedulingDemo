@@ -5,6 +5,8 @@ from tkinter import (
 from pathlib import (
     Path,
 )
+
+from matplotlib.colors import LinearSegmentedColormap
 from keras.models import (
     load_model,
 )
@@ -17,31 +19,56 @@ class ConfigGUI:
     ) -> None:
         self._pre_init()
 
-        self.label_img_users_height_scale = 0.1
+        self.logos = [
+            'unilogo.png',
+            'ANT.png',
+            'sponsoredbybmbf.png',
+            'momentum.jpg',
+            'FunKI_Logo_final_4C.png',
+        ]
         self.label_img_logos_height_scale = 0.07
-        self.label_img_base_station_height_scale = 0.25
+
+        self.label_title_text = 'Play vs. AI!'
+        self.label_title_font = ('Arial', 60)
+
+        self.label_user_font = ('Arial', 25)
+        self.user_images = [
+            '1.png',
+            '2.png',
+            '3.png',
+            'whambulance.png',
+        ]
+        self.base_station_image = 'base_station.png'
+
+        self.label_img_user_height_scale = 0.1
         self.label_img_users_border_width = 15
+        self.label_img_base_station_height_scale = 0.25
 
-        self.table_instant_stats_font_size = 11
-        self.label_allocations_titles_font = ('Arial', 15)
-
-        self.button_font = ('Arial', 50)
-        self.button_screen_selector_font = ('Arial', 25)
-        self.button_user_width = 6  # relative to font size
-        self.button_user_height = 2  # relative to font size
-
-        self.button_panic_width = 190  # relative to image size
-        self.button_panic_height = 190  # relative to image size
-        self.button_panic_color = self.cp3['white']
-
+        self.label_resource_grid_text = 'Resources'
         self.label_resource_font = ('Arial', 50)
         self.label_resource_width = 3  # relative to font size
         self.label_resource_height = 1  # relative to font size
         self.label_resource_border_width = 2
+
+        self.button_screen_selector_font = ('Arial', 25)
+
+        self.label_instant_stats_title_text = 'Scores'
+        self.table_instant_stats_font_size = 11
+
+        self.label_lifetime_stats_title_text = 'Overall Performance Since Start'
+        self.fig_lifetime_stats_font_size = 11
+        self.fig_lifetime_stats_bar_color = self.cp3['blue3']
+        self.fig_lifetime_stats_color_gradient = [self.cp3['red2'], self.cp3['blue3'], self.cp3['blue2']]
+
+        self.label_resource_grid_title_font = ('Arial', 15)
         self.label_resource_small_scaling: float = 0.5
 
-        self.label_user_font = ('Arial', 25)
-        self.label_title_font = ('Arial', 60)
+        self.button_panic_img = 'stopwatch.png'
+        self.button_panic_font = ('Arial', 50)
+        self.button_panic_width = 190  # relative to image size
+        self.button_panic_height = 190  # relative to image size
+        self.button_panic_border_width = 30
+        self.button_panic_color = self.cp3['white']
 
         self.countdown_reset_value_seconds: int = 10
 
@@ -63,6 +90,8 @@ class ConfigGUI:
             'fairness': 'ML: Max Fairness',
             'mixed': 'ML: Max Overall',
         }
+
+        self.stat_names = ['Transmit', 'Fairness', 'Deaths', 'Overall']
 
         self._post_init()
 
@@ -87,16 +116,11 @@ class ConfigGUI:
         }
 
         self.button_panic_config = {
-            'font': self.button_font,
+            'font': self.button_panic_font,
             'width': self.button_panic_width,
             'height': self.button_panic_height,
             'bg': self.button_panic_color,
-        }
-
-        self.button_user_config = {
-            'font': self.button_font,
-            'width': self.button_user_width,
-            'height': self.button_user_height,
+            'borderwidth': self.button_panic_border_width,
         }
 
         self.label_resource_config = {
@@ -115,8 +139,8 @@ class ConfigGUI:
             'highlightthickness': self.label_img_users_border_width,
         }
 
-        self.label_allocations_titles_config = {
-            'font': self.label_allocations_titles_font,
+        self.label_resource_grid_title_config = {
+            'font': self.label_resource_grid_title_font,
             'height': 2,
             'wraplength': 100,
             'bg': 'white',
@@ -128,10 +152,30 @@ class ConfigGUI:
             'justify': LEFT,
         }
 
+        self.label_resource_grid_text_config = {
+            'text': self.label_resource_grid_text,
+            'font': self.label_user_font,
+            'bg': 'white',
+            'justify': LEFT,
+        }
+
         self.label_title_text_config = {
+            'text': self.label_title_text,
             'font': self.label_title_font,
             'bg': 'white',
             'justify': LEFT,
+        }
+
+        self.label_instant_stats_title_config = {
+            'text': self.label_instant_stats_title_text,
+            'font': self.label_user_font,
+            'bg': 'white',
+        }
+
+        self.label_lifetime_stats_title_config = {
+            'text': self.label_lifetime_stats_title_text,
+            'font': self.label_user_font,
+            'bg': 'white',
         }
 
         self.frames_config = {
@@ -147,9 +191,24 @@ class ConfigGUI:
 
         self.allocator_names = [self.own_allocation_display_name] + list(self.learned_agents_display_names.values())
 
+        self.fig_instant_stats_config = {
+            'column_labels': self.stat_names,
+            'row_labels': self.allocator_names,
+            'font_size': self.table_instant_stats_font_size,
+        }
+
+        self.fig_lifetime_stats_config = {
+            'column_labels': self.allocator_names,
+            'font_size': self.fig_lifetime_stats_font_size,
+            'bar_color': self.fig_lifetime_stats_bar_color,
+        }
+        self.fig_lifetime_stats_gradient_cmap = LinearSegmentedColormap.from_list('', self.fig_lifetime_stats_color_gradient)
+        self.fig_lifetime_stats_gradient_cmap_reversed = LinearSegmentedColormap.from_list('', list(reversed(self.fig_lifetime_stats_color_gradient)))
+
     def _load_palettes(
             self,
     ) -> None:
+
         self.cp3: dict[str: str] = {  # uni branding
             'red1': '#9d2246',
             'red2': '#d50c2f',

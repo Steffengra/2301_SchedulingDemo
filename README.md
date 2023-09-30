@@ -11,6 +11,7 @@ The relevant file to start the GUI demo is `src/analysis/gui.py`
 
 ### How does it work?
 - Users want x number of resources -> allocating more than that has no benefit
+- Resources can be, e.g., time or frequency blocks
 - Users have a channel strength -> One resource at better channel leads to more "throughput"
 - Click on user icon to allocate one resource to this user
 - When all resources are allocated, stats are calculated:

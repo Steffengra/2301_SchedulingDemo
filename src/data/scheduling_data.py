@@ -123,10 +123,10 @@ class SchedulingData:
 
         # grant at most one additional resource if there was rounding down
         if sum(slot_allocation_solution) == self.resource_grid.total_resource_slots - 1:
-            remainders = [
+            remainders = np_round([
                 percentage_allocation_solution[ue_id] * self.resource_grid.total_resource_slots - slot_allocation_solution[ue_id]
                 for ue_id in range(len(self.users))
-            ]
+            ], decimals=5)
             for ue_id in range(len(self.users)):
                 if remainders[ue_id] > 0:
                     if requested_slots_per_ue[ue_id] > slot_allocation_solution[ue_id]:
