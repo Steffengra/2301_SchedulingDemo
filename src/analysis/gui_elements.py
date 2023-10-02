@@ -14,6 +14,9 @@ from src.utils.get_width_rescale_constant_aspect_ratio import (
 
 
 class Scenario(tk.Frame):
+    """
+    Left hand side of the screen, holds logos, users, their wants, the primary resource grid.
+    """
 
     def __init__(
             self,
@@ -121,6 +124,9 @@ class Scenario(tk.Frame):
 
 
 class UserFrame(tk.Frame):
+    """
+    Frame for a user with an image and text.
+    """
 
     def __init__(
             self,
@@ -165,6 +171,9 @@ class UserFrame(tk.Frame):
 
 
 class BaseStationFrame(tk.Frame):
+    """
+    Frame for a base station, just an image.
+    """
 
     def __init__(
             self,
@@ -197,6 +206,9 @@ class BaseStationFrame(tk.Frame):
 
 
 class ScreenSelector(tk.Frame):
+    """
+    Buttons to switch what is displayed on the right hand side of the screen.
+    """
 
     def __init__(
             self,
@@ -235,6 +247,10 @@ class ScreenSelector(tk.Frame):
 
 
 class ScreenResults(tk.Frame):
+    """
+    One choice of frame for the right hand side of screen. Compares the last allocations of
+    all agents (user + learned agents), and their immediate results.
+    """
 
     def __init__(
             self,
@@ -305,6 +321,11 @@ class ScreenResults(tk.Frame):
 
 
 class ScreenStats(tk.Frame):
+    """
+    One choice of frame for the right hand side of screen. Holds the countdown button,
+    instantaneous results of the last allocation, and the lifetime average of
+    each schedulers' overall performance.
+    """
 
     def __init__(
             self,
@@ -371,6 +392,9 @@ class ScreenStats(tk.Frame):
 
 
 class ResourceGrid:
+    """
+    A resource grid made from vertically stacked boxes that can be colored.
+    """
 
     def __init__(
             self,
@@ -397,6 +421,11 @@ class ResourceGrid:
             self,
             color,
     ) -> int:
+        """
+        Color the resource succeeding the last accessed resource.
+        :param color: Which color
+        :return: Index of the colored resource.
+        """
 
         self.labels[self.pointer].config(bg=color)
         self.pointer += 1
@@ -408,6 +437,11 @@ class ResourceGrid:
             allocation: dict,
             color_dict: dict,
     ) -> None:
+        """
+        Fill the entire grid with colors according to a given allocation.
+        :param allocation: dict[user_id: num_resources]
+        :param color_dict:  dict[user_id: color]
+        """
 
         self.clear()
 
@@ -418,6 +452,9 @@ class ResourceGrid:
     def clear(
             self,
     ) -> None:
+        """
+        Color the entire grid white. Reset starting index.
+        """
 
         for label in self.labels:
             label.config(bg='white')
@@ -426,6 +463,9 @@ class ResourceGrid:
 
 
 class FigInstantStats:
+    """
+    Figure that holds a table to display metrics of the most recent allocation.
+    """
 
     def __init__(
             self,
@@ -484,6 +524,9 @@ class FigInstantStats:
 
 
 class FigLifetimeStats:
+    """
+    Bar chart of the average overall performance of each allocator.
+    """
 
     def __init__(
             self,

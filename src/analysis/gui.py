@@ -30,39 +30,50 @@ from src.utils.get_width_rescale_constant_aspect_ratio import get_width_rescale_
 
 
 class App(tk.Tk):
+    """
+    The main GUI object. Populated with elements from gui_elements.py.
+    """
 
     def __init__(
             self,
     ) -> None:
+        """
+        Create GUI, set params like fullscreen, get some device info like window width in px.
+        Also set up simulations for evaluating allocations.
+        """
 
         super().__init__()
         self.configure(bg='white')
         self.attributes('-fullscreen', True)
 
-        self.config = Config()
-        self.config_gui = ConfigGUI()
+        # Load config files
+        self.config = Config()  # sim related
+        self.config_gui = ConfigGUI()  # gui related
 
+        # Get device info
         self.window_width = self.winfo_screenwidth()
         self.window_height = self.winfo_screenheight()
 
+        # Globals for the countdown button
         self.countdown_toggle = False
         self.countdown_value = 0
 
-        # SIMS
-        self.sim_main = SchedulingData(config=self.config)
-        self.secondary_simulations = {
+        # Set up sims to evaluate allocations
+        self.sim_main = SchedulingData(config=self.config)  # user sim
+        self.secondary_simulations = {  # learned algorithm sims
             learner_name: SchedulingData(config=self.config)
             for learner_name in self.config_gui.learned_agents.keys()
         }
-        self.update_secondary_simulations()
+        self.update_secondary_simulations()  # secondary sims copy the main sim state
 
+        # Global store for user allocation
         self.resources_per_user = {
             user_id: 0
             for user_id in range(4)
         }
 
-        # LIFETIME STATS
-        self.lifetime_stats = {
+        # Lifetime stat keeping
+        self.lifetime_stats = {  # user
             'self': {
                 'sumrate': [],
                 'fairness': [],
@@ -70,25 +81,32 @@ class App(tk.Tk):
                 'overall': [],
             }
         }
-        for learner_name in self.config_gui.learned_agents.keys():
+        for learner_name in self.config_gui.learned_agents.keys():  # learned algorithms
             self.lifetime_stats[learner_name] = {
                 'sumrate': [],
                 'fairness': [],
                 'timeouts': [],
                 'overall': [],
             }
+
+        # Global for axis scaling
         self.maximum_reward_achieved = 0.1
 
-        # ARITHMETIC
+        # Arithmetic
         self.channel_img_height = int(self.config_gui.label_user_font[1]*1.2)
         self.label_base_station_height = int(self.config_gui.label_img_base_station_height_scale * self.window_height)
 
+        # Set up GUI elements
         self._gui_setup()
 
     def _gui_setup(
             self,
     ) -> None:
+        """
+        Set up & position GUI elements from gui_elements.py.
+        """
 
+        # Load channel strength indicator images for later use
         self.images_channelstrength = [
             Image.open(Path(project_root_path, 'src', 'analysis', 'img', 'low.png')),
             Image.open(Path(project_root_path, 'src', 'analysis', 'img', 'medlow.png')),
@@ -112,7 +130,12 @@ class App(tk.Tk):
             logo_paths=[Path(project_root_path, 'src', 'analysis', 'img', logo) for logo in self.config_gui.logos],
             user_image_paths=[Path(project_root_path, 'src', 'analysis', 'img', user_image) for user_image in self.config_gui.user_images],
             base_station_image_path=Path(project_root_path, 'src', 'analysis', 'img', self.config_gui.base_station_image),
-            button_callbacks=[self.callback_button_user_0, self.callback_button_user_1, self.callback_button_user_2, self.callback_button_user_ambulance],
+            button_callbacks=[
+                lambda event: self.allocate_resource(user_id=0),
+                lambda event: self.allocate_resource(user_id=1),
+                lambda event: self.allocate_resource(user_id=2),
+                lambda event: self.allocate_resource(user_id=3),
+            ],
             num_total_resource_slots=self.config.num_total_resource_slots,
             **self.config_gui.frames_config,
         )
@@ -164,16 +187,25 @@ class App(tk.Tk):
         self.separator_vertical = ttk.Separator(self, orient='vertical')
         self.separator_vertical.place(relx=0.7, rely=0, relwidth=0.0, relheight=1)
 
+        # Aggregate button-selectable frames for easier bookkeeping
         self.selectable_frames = {
             'AllocationResults': self.frame_stats,
             'Stats': self.frame_results,
         }
 
+        # Initialize user text labels
         self.update_user_text_labels()
 
     def check_loop(
             self,
     ) -> None:
+        """
+        Function that is called periodically.
+        If countdown mode is active,
+            1) If countdown value > 0, decrement countdown value, update countdown value indicator
+            2) If countdown value == 0, evaluate the current allocation and reset the timer, update indicator
+        Then call self again with a delay.
+        """
 
         if self.countdown_toggle:
             if self.countdown_value == 0:
@@ -187,6 +219,9 @@ class App(tk.Tk):
     def change_to_frame_allocations(
             self,
     ) -> None:
+        """
+        Raise frame results to the top.
+        """
 
         for frame in self.selectable_frames.values():
             self.frame_results.tkraise(aboveThis=frame)
@@ -194,6 +229,9 @@ class App(tk.Tk):
     def change_to_frame_stats(
             self,
     ) -> None:
+        """
+        Raise frame stats to the top.
+        """
 
         for frame in self.selectable_frames.values():
             self.frame_stats.tkraise(aboveThis=frame)
@@ -201,6 +239,10 @@ class App(tk.Tk):
     def callback_button_timer(
             self,
     ) -> None:
+        """
+        Countdown button on-press. Toggle countdown mode. If now active, initialize countdown,
+        else indicate that countdown is not active.
+        """
 
         self.countdown_toggle = not self.countdown_toggle
         if self.countdown_toggle:
@@ -210,54 +252,48 @@ class App(tk.Tk):
         if not self.countdown_toggle:
             self.frame_stats.button_timer.configure(text='', image=self.frame_stats.tk_image_stopwatch)
 
-    def callback_button_user_0(
-            self,
-            event,
-    ) -> None:
-        self.allocate_resource(user_id=0)
-
-    def callback_button_user_1(
-            self,
-            event,
-    ) -> None:
-        self.allocate_resource(user_id=1)
-
-    def callback_button_user_2(
-            self,
-            event,
-    ) -> None:
-        self.allocate_resource(user_id=2)
-
-    def callback_button_user_ambulance(
-            self,
-            event,
-    ) -> None:
-        self.allocate_resource(user_id=3)
-
     def allocate_resource(
             self,
             user_id,
     ) -> None:
+        """
+        Allocate one resource to user user_id.
+        :param user_id: User to allocate to.
+        """
 
-        current_resource_pointer = self.frame_scenario.resource_grid.allocate(color=self.config_gui.user_colors[user_id])
+        # Allocate visually
+        current_resource_pointer = self.frame_scenario.resource_grid.allocate(
+            color=self.config_gui.user_colors[user_id]
+        )
 
+        # Bookkeeping
         self.resources_per_user[user_id] += 1
+
+        # If all resources allocated -> evaluate
         if current_resource_pointer == self.config.num_total_resource_slots:
-            self.after(100, self.evaluate_allocation)
+            self.after(100, self.evaluate_allocation)  # small delay makes it feel more natural
 
     def evaluate_allocation(
             self,
     ) -> None:
+        """
+        Evaluate user allocation & learner allocations. Update GUI accordingly.
+        """
 
-        # get own action
+        # Convert user allocation to sim expected formatting
         action = np.array(list(self.resources_per_user.values())) / self.config.num_total_resource_slots
         action = action.astype('float32')
+
+        # Fill the small allocation resource grid with user allocation
         self.frame_results.resource_grids[self.config_gui.allocator_names[0]].fill(
             allocation=self.get_allocated_slots(percentage_allocation_solution=action, sim=self.sim_main),
             color_dict=self.config_gui.user_colors,
         )
+
+        # Calculate achieved metrics
         reward, reward_components = self.sim_main.step(percentage_allocation_solution=action)
 
+        # Format for table display
         instant_stats = [[
             reward_components['sum rate'],
             reward_components['fairness score'],
@@ -265,21 +301,28 @@ class App(tk.Tk):
             reward
         ]]
 
+        # Bookkeeping
         self.lifetime_stats['self']['sumrate'].append(reward_components['sum rate'])
         self.lifetime_stats['self']['fairness'].append(reward_components['fairness score'])
         self.lifetime_stats['self']['timeouts'].append(reward_components['prio jobs missed'])
         self.lifetime_stats['self']['overall'].append(reward)
 
-        # get learner actions
+        # Repeat the same for learned algorithm calculations
         for learner_name, learner in self.config_gui.learned_agents.items():
+
+            # Get allocation action
             action = learner.call(self.secondary_simulations[learner_name].get_state()[np.newaxis]).numpy().squeeze()
+
+            # Fill the small allocation resource grid with user allocation
             self.frame_results.resource_grids[self.config_gui.learned_agents_display_names[learner_name]].fill(
                 allocation=self.get_allocated_slots(percentage_allocation_solution=action, sim=self.secondary_simulations[learner_name]),
                 color_dict=self.config_gui.user_colors,
             )
 
+            # Calculate achieved metrics
             reward, reward_components = self.secondary_simulations[learner_name].step(percentage_allocation_solution=action)
 
+            # Format for table display
             instant_stats.append(
                 [
                     reward_components['sum rate'],
@@ -289,26 +332,34 @@ class App(tk.Tk):
                 ]
             )
 
+            # Bookkeeping
             self.lifetime_stats[learner_name]['sumrate'].append(reward_components['sum rate'])
             self.lifetime_stats[learner_name]['fairness'].append(reward_components['fairness score'])
             self.lifetime_stats[learner_name]['timeouts'].append(reward_components['prio jobs missed'])
             self.lifetime_stats[learner_name]['overall'].append(reward)
 
+        # Update user text labels for the new simulation state
         self.update_user_text_labels()
 
+        # Calculate new lifetime stats and display them
         mean_rewards = [np.mean(self.lifetime_stats[member]['overall']) for member in self.lifetime_stats.keys()]
         self.frame_stats.lifetime_stats.update(values=mean_rewards)
 
-        # reset resources
+        # Reset user allocated resources memory
         self.resources_per_user = {
             0: 0,
             1: 0,
             2: 0,
             3: 0,
         }
+
+        # Clear primary resource grid
         self.frame_scenario.resource_grid.clear()
 
+        # Reset countdown
         self.countdown_value = self.config_gui.countdown_reset_value_seconds
+
+        # Update learned algorithm simulations to copy primary sim state
         self.update_secondary_simulations()
 
         # Update instant stats
@@ -343,6 +394,11 @@ class App(tk.Tk):
             self,
             channel_strength,
     ) -> tk.PhotoImage:
+        """
+        Select a channel strength image based on numerical channel strength
+        :param channel_strength: input channel strength
+        :return: A tkImage to display
+        """
 
         if channel_strength >= 16:
             return self.tk_images_channel_strength[3]
@@ -358,6 +414,9 @@ class App(tk.Tk):
     def update_user_text_labels(
             self,
     ) -> None:
+        """
+        Update user text labels based on the current primary sim state.
+        """
 
         # Resource Wants
         for label_text_user_id, frame_user in enumerate(self.frame_scenario.frames_users):
@@ -383,6 +442,9 @@ class App(tk.Tk):
     def update_secondary_simulations(
             self,
     ) -> None:
+        """
+        Sync all secondary simulations to the primary sim state.
+        """
 
         for sec_sim in self.secondary_simulations.values():
             sec_sim.import_state(state=self.sim_main.export_state())
@@ -391,7 +453,14 @@ class App(tk.Tk):
             self,
             percentage_allocation_solution: np.ndarray,
             sim,
-    ):
+    ) -> dict[int: int]:
+        """
+        Convert a floating point percentage allocation solution into discrete blocks, same as the sim would do it.
+        :param percentage_allocation_solution: [float_user0, float_user1, ...] with sum(.)=1.
+        :param sim: The sim to check for total users, user requests, etc.
+        :return: dict, Discrete allocations per user.
+        """
+
         requested_slots_per_ue = [
             sim.users[ue_id].job.size_resource_slots if sim.users[ue_id].job else 0
             for ue_id in range(len(sim.users))
@@ -426,10 +495,10 @@ class App(tk.Tk):
                 if slot_allocation_solution[random_user_id] > 0:
                     slot_allocation_solution[random_user_id] -= 1
 
-        # prepare the allocated slots per ue for metrics calculation
+        # Prepare the allocated slots per ue for metrics calculation
         allocated_slots_per_ue: dict = {
-                ue_id: slot_allocation_solution[ue_id]
-                for ue_id in range(len(sim.users))
+            ue_id: slot_allocation_solution[ue_id]
+            for ue_id in range(len(sim.users))
         }
 
         return allocated_slots_per_ue
