@@ -19,6 +19,8 @@ class ConfigGUI:
     ) -> None:
         self._pre_init()
 
+        global_font_scale = 1.0
+
         self.logos = [
             'unilogo.png',
             'ANT.png',
@@ -29,9 +31,9 @@ class ConfigGUI:
         self.label_img_logos_height_scale = 0.07
 
         self.label_title_text = 'Play vs. AI!'
-        self.label_title_font = ('Arial', 60)
+        self.label_title_font = ('Arial', int(global_font_scale * 60))
 
-        self.label_user_font = ('Arial', 25)
+        self.label_user_font = ('Arial', int(global_font_scale * 25))
         self.user_images = [
             '1.png',
             '2.png',
@@ -52,26 +54,26 @@ class ConfigGUI:
         ]
 
         self.label_resource_grid_text = 'Resources'
-        self.label_resource_font = ('Arial', 50)
+        self.label_resource_font = ('Arial', int(global_font_scale * 50))
         self.label_resource_width = 3  # relative to font size
         self.label_resource_height = 1  # relative to font size
         self.label_resource_border_width = 2
 
-        self.button_screen_selector_font = ('Arial', 25)
+        self.button_screen_selector_font = ('Arial', int(global_font_scale * 25))
 
         self.label_instant_stats_title_text = 'Scores'
-        self.table_instant_stats_font_size = 11
+        self.table_instant_stats_font_size = int(global_font_scale * 11)
 
         self.label_lifetime_stats_title_text = 'Overall Performance Since Start'
-        self.fig_lifetime_stats_font_size = 11
+        self.fig_lifetime_stats_font_size = int(global_font_scale * 11)
         self.fig_lifetime_stats_bar_color = self.cp3['blue3']
         self.fig_lifetime_stats_color_gradient = [self.cp3['red2'], self.cp3['blue3'], self.cp3['blue2']]
 
-        self.label_resource_grid_title_font = ('Arial', 15)
+        self.label_resource_grid_title_font = ('Arial', int(global_font_scale * 15))
         self.label_resource_small_scaling: float = 0.5
 
         self.button_panic_img = 'stopwatch.png'
-        self.button_panic_font = ('Arial', 50)
+        self.button_panic_font = ('Arial', int(global_font_scale * 15))
         self.button_panic_width = 190  # relative to image size
         self.button_panic_height = 190  # relative to image size
         self.button_panic_border_width = 30
