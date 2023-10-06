@@ -53,6 +53,7 @@ class App(tk.Tk):
         # Get device info
         self.window_width = self.winfo_screenwidth()
         self.window_height = self.winfo_screenheight()
+        self.pixels_per_inch = int(self.winfo_fpixels('1i'))
 
         # Globals for the countdown button
         self.countdown_toggle = False
@@ -158,6 +159,7 @@ class App(tk.Tk):
             config_gui=self.config_gui,
             window_width=self.window_width,
             window_height=self.window_height,
+            pixels_per_inch=self.pixels_per_inch,
             num_total_resource_slots=self.config.num_total_resource_slots,
             **self.config_gui.frames_config
         )
@@ -168,6 +170,7 @@ class App(tk.Tk):
             window_height=self.window_height,
             window_width=self.window_width,
             config_gui=self.config_gui,
+            pixels_per_inch=self.pixels_per_inch,
             button_timer_image_path=Path(project_root_path, 'src', 'analysis', 'img', self.config_gui.button_panic_img),
             button_timer_callback=self.callback_button_timer,
             **self.config_gui.frames_config

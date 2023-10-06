@@ -17,9 +17,10 @@ class ConfigGUI:
     def __init__(
             self,
     ) -> None:
+
         self._pre_init()
 
-        global_font_scale = 1.0
+        global_font_scale = 1.0  # scales fonts and elements that scale with font size, e.g., boxes
 
         self.logos = [
             'unilogo.png',

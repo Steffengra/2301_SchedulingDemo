@@ -257,6 +257,7 @@ class ScreenResults(tk.Frame):
             window_height: int,
             window_width: int,
             config_gui: 'src.config.config_gui.ConfigGUI',
+            pixels_per_inch: int,
             num_total_resource_slots: int,
             **kwargs,
     ) -> None:
@@ -296,7 +297,7 @@ class ScreenResults(tk.Frame):
         self.frame_instant_stats = tk.Frame(master=self, **config_gui.frames_config)
 
         self.label_instant_stats_title = tk.Label(self.frame_instant_stats, **config_gui.label_instant_stats_title_config)
-        self.instant_stats = FigInstantStats(self.frame_instant_stats, table_config=config_gui.fig_instant_stats_config)
+        self.instant_stats = FigInstantStats(self.frame_instant_stats, fig_width=0.3*window_width/pixels_per_inch, table_config=config_gui.fig_instant_stats_config)
 
         self._place_items()
 
@@ -309,7 +310,7 @@ class ScreenResults(tk.Frame):
         self.subframe_allocations.pack(expand=True)
         for subframe_allocation in self.subframes_allocations.values():
             subframe_allocation.pack(side=tk.LEFT, padx=20)
-        self.frame_instant_stats.pack()
+        self.frame_instant_stats.pack(expand=True)
 
         for resource_grid in self.resource_grids.values():
             resource_grid.place()
@@ -332,6 +333,7 @@ class ScreenStats(tk.Frame):
             window_width: int,
             window_height: int,
             config_gui: 'src.config.config_gui.ConfigGUI',
+            pixels_per_inch: int,
             button_timer_image_path: Path,
             button_timer_callback,
             **kwargs,
@@ -366,11 +368,11 @@ class ScreenStats(tk.Frame):
 
         # Fig Lifetime Stats
         self.label_lifetime_stats_title = tk.Label(self.frame_lifetime_stats, **config_gui.label_lifetime_stats_title_config)
-        self.lifetime_stats = FigLifetimeStats(master=self.frame_lifetime_stats, **config_gui.fig_lifetime_stats_config)
+        self.lifetime_stats = FigLifetimeStats(master=self.frame_lifetime_stats, fig_width=0.3*window_width/pixels_per_inch, **config_gui.fig_lifetime_stats_config)
 
         # Fig Instant Stats
         self.label_instant_stats_title = tk.Label(self.frame_instant_stats, **config_gui.label_instant_stats_title_config)
-        self.instant_stats = FigInstantStats(self.frame_instant_stats, table_config=config_gui.fig_instant_stats_config)
+        self.instant_stats = FigInstantStats(self.frame_instant_stats, fig_width=0.3*window_width/pixels_per_inch, table_config=config_gui.fig_instant_stats_config)
 
         self._place_items()
 
@@ -380,7 +382,7 @@ class ScreenStats(tk.Frame):
 
         self.frame_countdown_button.pack(expand=True)
         self.frame_lifetime_stats.pack(expand=True)
-        self.frame_instant_stats.pack()
+        self.frame_instant_stats.pack(expand=True)
 
         self.button_timer.pack(side=tk.TOP, fill=tk.BOTH)
 
@@ -470,10 +472,11 @@ class FigInstantStats:
     def __init__(
             self,
             master: tk.Frame,
+            fig_width: float,
             table_config: dict,
     ) -> None:
 
-        self.fig = plt.Figure(figsize=(5.5, 1.8))
+        self.fig = plt.Figure(figsize=(fig_width, 0.25*fig_width))
         self.ax = self.fig.add_subplot()
         self.ax.axis('tight')
         self.ax.axis('off')
@@ -532,6 +535,7 @@ class FigLifetimeStats:
     def __init__(
             self,
             master: tk.Frame,
+            fig_width: float,
             column_labels: list[str],
             font_size: int,
             bar_color: str,
@@ -539,7 +543,7 @@ class FigLifetimeStats:
 
         self.maximum_value: float = 0.1  # initialize arbitrarily
 
-        fig = plt.Figure(figsize=(5.5, 2.5), dpi=100)
+        fig = plt.Figure(figsize=(fig_width, 0.4*fig_width))
         self.ax = fig.add_subplot()
         t = range(4)
         self.bars_primary = self.ax.barh(
