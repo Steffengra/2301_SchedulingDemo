@@ -108,10 +108,12 @@ class App(tk.Tk):
 
         # Load channel strength indicator images for later use
         self.images_channelstrength = [
-            Image.open(Path(project_root_path, 'src', 'analysis', 'img', 'low.png')),
-            Image.open(Path(project_root_path, 'src', 'analysis', 'img', 'medlow.png')),
-            Image.open(Path(project_root_path, 'src', 'analysis', 'img', 'medhigh.png')),
-            Image.open(Path(project_root_path, 'src', 'analysis', 'img', 'high.png')),
+            Image.open(Path(project_root_path, 'src', 'analysis', 'img', channel_strength_indicator_img))
+            for channel_strength_indicator_img in self.config_gui.channel_strength_indicator_imgs
+            # Image.open(Path(project_root_path, 'src', 'analysis', 'img', 'low.png')),
+            # Image.open(Path(project_root_path, 'src', 'analysis', 'img', 'medlow.png')),
+            # Image.open(Path(project_root_path, 'src', 'analysis', 'img', 'medhigh.png')),
+            # Image.open(Path(project_root_path, 'src', 'analysis', 'img', 'high.png')),
         ]
         self.tk_images_channel_strength = [
             ImageTk.PhotoImage(image_channel_strength.resize((

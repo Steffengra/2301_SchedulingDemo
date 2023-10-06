@@ -44,6 +44,13 @@ class ConfigGUI:
         self.label_img_users_border_width = 15
         self.label_img_base_station_height_scale = 0.25
 
+        self.channel_strength_indicator_imgs = [
+            'bars_low_alt.png',
+            'bars_medlow_alt.png',
+            'bars_medhigh_alt.png',
+            'bars_high.png',
+        ]
+
         self.label_resource_grid_text = 'Resources'
         self.label_resource_font = ('Arial', 50)
         self.label_resource_width = 3  # relative to font size
