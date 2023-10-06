@@ -481,6 +481,7 @@ class FigInstantStats:
         self.canvas = FigureCanvasTkAgg(self.fig, master=master)
 
         data = np.array([[0] * 4] * 4)
+        self.fig.tight_layout()
         self.draw_instant_stats_table(data=data, **table_config)
         self.fig.tight_layout()
 
