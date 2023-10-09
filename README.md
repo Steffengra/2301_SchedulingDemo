@@ -5,7 +5,8 @@ The user can compare themselves to three AI algorithms in optimizing system metr
 currently sum rate, fairness, ambulance timeouts, and mixed performance, by intelligent resource scheduling.
 There is also a countdown challenge mode.
 
-The relevant file to start the GUI demo is `src/analysis/gui.py`
+The relevant file to start the GUI demo is `src/analysis/gui.py`.
+Most config parameters, e.g., UI scaling, are controlled in `src/config/config_gui.py`.
 
 ![screenshot.png](reports/screenshot.png)
 
@@ -32,6 +33,8 @@ Trial and error, just like the player would when playing the demo
 - You will notice: AI Algorithms are not trained to convergence, i.e., Max Fairness will not always find
 the fairest allocation etc. This is not immediately obvious -> we must be mindful of that when applying AI
 algorithms in practice
+- You can sometimes see the Max Fairness algorithm not even allocate all of its resources and
+still find a strong fairness score. It has found a way to game our performance metric definition.
 
 ### Folder Structure:
 
