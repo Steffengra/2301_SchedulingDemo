@@ -23,7 +23,7 @@ class ConfigGUI:
 
         self._pre_init()
 
-        self.strings_file = 'strings_en.yml'  # text for all visible strings
+        self._strings_file = 'strings_en.yml'  # text for all visible strings
 
         global_font_scale = 1.0  # scales fonts and elements that scale with font size, e.g., boxes
 
@@ -96,7 +96,6 @@ class ConfigGUI:
             'mixed': load_model(Path(self.models_path, 'mixed', 'policy_snap_1.020')),
         }
 
-
         self._post_init()
 
     def _pre_init(
@@ -112,7 +111,7 @@ class ConfigGUI:
             self,
     ) -> None:
 
-        with open(Path(self.project_root_path, 'src', 'config', self.strings_file), 'r') as file:
+        with open(Path(self.project_root_path, 'src', 'config', self._strings_file), 'r') as file:
             self.strings = yaml.safe_load(file)
         self.set_strings()
 

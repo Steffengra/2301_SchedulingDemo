@@ -36,6 +36,11 @@ algorithms in practice
 - You can sometimes see the Max Fairness algorithm not even allocate all of its resources and
 still find a strong fairness score. It has found a way to game our performance metric definition.
 
+### Most Important Config:
+- Language setting via `self._strings_file`
+- Font scaling via `global_font_scale`
+- Partner Logos via `self.logos`
+
 ### Folder Structure:
 
 ```
