@@ -429,7 +429,7 @@ class App(tk.Tk):
                 resources = self.sim_main.users[label_text_user_id].job.size_resource_slots
             else:
                 resources = 0
-            text = f'Wants: {resources} Resources'
+            text = f'{self.config_gui.string_wants}: {resources} {self.config_gui.string_resources}'
             frame_user.label_user_text_wants.configure(
                 text=text
             )
@@ -438,6 +438,7 @@ class App(tk.Tk):
         for label_text_user_id, frame_user in enumerate(self.frame_scenario.frames_users):
             channel_strength = self.sim_main.users[label_text_user_id].power_gain
             text = 'Channel: '
+            text = f'{self.config_gui.string_channel}: '
             frame_user.label_user_text_channel_strength.configure(
                 text=text,
                 image=self.get_channel_strength_image(channel_strength),

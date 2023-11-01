@@ -1,0 +1,25 @@
+
+label_title: Spiel vs. KI!
+label_resource_grid: Ressourcen
+label_instant_stats_title: Ergebnisse
+label_lifetime_stats_title: Gesamtleistung seit Start
+label_results_title: Letzte Allokationen
+
+stats:
+  - Daten
+  - Fairness
+  - Tode
+  - Gesamt
+
+label_own_display_name: DU
+label_learned_display_names:
+  sumrate: 'KI: Max Daten'
+  fairness: 'KI: Max Fairness'
+  mixed: 'KI: Max Gesamt'
+
+button_screen_selector_allocations: Allokationen
+button_screen_selector_stats: Statistiken
+
+wants: Will
+resources: Ressourcen
+channel: Kanal

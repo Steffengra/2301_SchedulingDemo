@@ -1,10 +1,13 @@
 
 from tkinter import (
     LEFT,
+    CENTER,
 )
 from pathlib import (
     Path,
 )
+
+import yaml
 
 from matplotlib.colors import LinearSegmentedColormap
 from keras.models import (
@@ -20,6 +23,8 @@ class ConfigGUI:
 
         self._pre_init()
 
+        self.strings_file = 'strings_en.yml'  # text for all visible strings
+
         global_font_scale = 1.0  # scales fonts and elements that scale with font size, e.g., boxes
 
         self.logos = [
@@ -31,7 +36,6 @@ class ConfigGUI:
         ]
         self.label_img_logos_height_scale = 0.07
 
-        self.label_title_text = 'Play vs. AI!'
         self.label_title_font = ('Arial', int(global_font_scale * 60))
 
         self.label_user_font = ('Arial', int(global_font_scale * 25))
@@ -54,7 +58,6 @@ class ConfigGUI:
             'bars_high.png',
         ]
 
-        self.label_resource_grid_text = 'Resources'
         self.label_resource_font = ('Arial', int(global_font_scale * 50))
         self.label_resource_width = 3  # relative to font size
         self.label_resource_height = 1  # relative to font size
@@ -62,10 +65,8 @@ class ConfigGUI:
 
         self.button_screen_selector_font = ('Arial', int(global_font_scale * 25))
 
-        self.label_instant_stats_title_text = 'Scores'
         self.table_instant_stats_font_size = int(global_font_scale * 11)
 
-        self.label_lifetime_stats_title_text = 'Overall Performance Since Start'
         self.fig_lifetime_stats_font_size = int(global_font_scale * 11)
         self.fig_lifetime_stats_bar_color = self.cp3['blue3']
         self.fig_lifetime_stats_color_gradient = [self.cp3['red2'], self.cp3['blue3'], self.cp3['blue2']]
@@ -94,14 +95,7 @@ class ConfigGUI:
             'fairness': load_model(Path(self.models_path, 'fairness', 'policy_snap_0.914')),
             'mixed': load_model(Path(self.models_path, 'mixed', 'policy_snap_1.020')),
         }
-        self.own_allocation_display_name = 'YOU'
-        self.learned_agents_display_names = {
-            'sumrate': 'ML: Max Transmit',
-            'fairness': 'ML: Max Fairness',
-            'mixed': 'ML: Max Overall',
-        }
 
-        self.stat_names = ['Transmit', 'Fairness', 'Deaths', 'Overall']
 
         self._post_init()
 
@@ -118,11 +112,26 @@ class ConfigGUI:
             self,
     ) -> None:
 
+        with open(Path(self.project_root_path, 'src', 'config', self.strings_file), 'r') as file:
+            self.strings = yaml.safe_load(file)
+        self.set_strings()
+
         self.button_screen_selector_config = {
             'font': self.button_screen_selector_font,
             'width': 15,
             'borderwidth': 3,
             'bg': 'white',
+            'compound': CENTER,
+        }
+
+        self.button_screen_selector_allocations_config = {
+            'text': self.button_screen_selector_allocations_text,
+            **self.button_screen_selector_config
+        }
+
+        self.button_screen_selector_stats_config = {
+            'text': self.button_screen_selector_stats_text,
+            **self.button_screen_selector_config,
         }
 
         self.button_panic_config = {
@@ -131,6 +140,11 @@ class ConfigGUI:
             'height': self.button_panic_height,
             'bg': self.button_panic_color,
             'borderwidth': self.button_panic_border_width,
+        }
+
+        self.labels_config = {
+            'font': self.label_user_font,
+            'bg': 'white',
         }
 
         self.label_resource_config = {
@@ -176,6 +190,11 @@ class ConfigGUI:
             'justify': LEFT,
         }
 
+        self.label_results_title_config = {
+            'text': self.label_results_title_text,
+            **self.labels_config,
+        }
+
         self.label_instant_stats_title_config = {
             'text': self.label_instant_stats_title_text,
             'font': self.label_user_font,
@@ -194,11 +213,6 @@ class ConfigGUI:
             # 'borderwidth': 2,
         }
 
-        self.labels_config = {
-            'font': self.label_user_font,
-            'bg': 'white',
-        }
-
         self.allocator_names = [self.own_allocation_display_name] + list(self.learned_agents_display_names.values())
 
         self.fig_instant_stats_config = {
@@ -214,6 +228,26 @@ class ConfigGUI:
         }
         self.fig_lifetime_stats_gradient_cmap = LinearSegmentedColormap.from_list('', self.fig_lifetime_stats_color_gradient)
         self.fig_lifetime_stats_gradient_cmap_reversed = LinearSegmentedColormap.from_list('', list(reversed(self.fig_lifetime_stats_color_gradient)))
+
+    def set_strings(
+            self,
+    ) -> None:
+
+        self.button_screen_selector_allocations_text = self.strings['button_screen_selector_allocations']
+        self.button_screen_selector_stats_text = self.strings['button_screen_selector_stats']
+
+        self.label_title_text = self.strings['label_title']
+        self.label_resource_grid_text = self.strings['label_resource_grid']
+        self.label_instant_stats_title_text = self.strings['label_instant_stats_title']
+        self.label_lifetime_stats_title_text = self.strings['label_lifetime_stats_title']
+        self.stat_names = self.strings['stats']
+        self.own_allocation_display_name = self.strings['label_own_display_name']
+        self.learned_agents_display_names = self.strings['label_learned_display_names']
+        self.label_results_title_text = self.strings['label_results_title']
+
+        self.string_wants = self.strings['wants']
+        self.string_resources = self.strings['resources']
+        self.string_channel = self.strings['channel']
 
     def _load_palettes(
             self,

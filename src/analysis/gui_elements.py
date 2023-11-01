@@ -223,17 +223,13 @@ class ScreenSelector(tk.Frame):
 
         self.screen_selector_button_allocations = tk.Button(
             self,
-            text='Allocations',
-            compound=tk.CENTER,
             command=button_commands[0],
-            **config_gui.button_screen_selector_config
+            **config_gui.button_screen_selector_allocations_config,
         )
         self.screen_selector_button_stats = tk.Button(
             self,
-            text='Statistics',
-            compound=tk.CENTER,
             command=button_commands[1],
-            **config_gui.button_screen_selector_config
+            **config_gui.button_screen_selector_stats_config
         )
 
         self._place_items()
@@ -271,7 +267,7 @@ class ScreenResults(tk.Frame):
         self.subframe_allocations = tk.Frame(master=self.frame_allocations, **config_gui.frames_config)
 
         # Title label in allocations frame
-        self.label_results_title = tk.Label(self.frame_allocations, text='Last Allocations', **config_gui.labels_config)
+        self.label_results_title = tk.Label(self.frame_allocations, **config_gui.label_results_title_config)
         # Frames to hold one resource grid for each scheduler
         self.subframes_allocations = {
             allocator_name: tk.Frame(master=self.subframe_allocations, **config_gui.frames_config)
