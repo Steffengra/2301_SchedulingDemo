@@ -36,7 +36,7 @@ algorithms in practice
 - You can sometimes see the Max Fairness algorithm not even allocate all of its resources and
 still find a strong fairness score. It has found a way to game our performance metric definition.
 
-### Most Important Config:
+### Most Important config in `config_gui.py`:
 - Language setting via `self._strings_file`
 - Font scaling via `global_font_scale`
 - Partner Logos via `self.logos`
@@ -44,6 +44,7 @@ still find a strong fairness score. It has found a way to game our performance m
 ### Folder Structure:
 
 ```
+root
 |   .gitignore          | .gitignore
 |   README.md           | this file
 |   requirements.txt    | project dependencies
@@ -58,4 +59,4 @@ still find a strong fairness score. It has found a way to game our performance m
 ```
 
 ### Known Issues:
-- Fonts will sometimes look ugly. Could be due to using conda which does not build TrueType fonts (["Why not use something more modern than tk?"](https://github.com/ContinuumIO/anaconda-issues/issues/6833)). Bundling a font file does not seem feasible either.
+- Fonts will look ugly when using conda. Does not build TrueType fonts (["Why not use something more modern than tk?"](https://github.com/ContinuumIO/anaconda-issues/issues/6833)). Bundling a font file does not seem feasible either.
