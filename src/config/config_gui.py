@@ -75,7 +75,7 @@ class ConfigGUI:
         self.label_resource_small_scaling: float = 0.5
 
         self.button_panic_img = 'stopwatch.png'
-        self.button_panic_font = ('Arial', int(global_font_scale * 15))
+        self.button_panic_font = ('Arial', int(global_font_scale * 25))
         self.button_panic_width = 190  # relative to image size
         self.button_panic_height = 190  # relative to image size
         self.button_panic_border_width = 30

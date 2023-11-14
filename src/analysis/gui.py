@@ -59,6 +59,9 @@ class App(tk.Tk):
         self.countdown_toggle = False
         self.countdown_value = 0
 
+        # Auto mode toggle
+        self.auto_mode_toggle = False
+
         # Set up sims to evaluate allocations
         self.sim_main = SchedulingData(config=self.config)  # user sim
         self.secondary_simulations = {  # learned algorithm sims
@@ -173,6 +176,7 @@ class App(tk.Tk):
             pixels_per_inch=self.pixels_per_inch,
             button_timer_image_path=Path(project_root_path, 'src', 'analysis', 'img', self.config_gui.button_panic_img),
             button_timer_callback=self.callback_button_timer,
+            button_auto_mode_callback=self.callback_button_auto_mode,
             **self.config_gui.frames_config
         )
 
@@ -256,6 +260,32 @@ class App(tk.Tk):
 
         if not self.countdown_toggle:
             self.frame_stats.button_timer.configure(text='', image=self.frame_stats.tk_image_stopwatch)
+
+    def callback_button_auto_mode(
+            self,
+    ) -> None:
+        """
+        Auto mode allocates one resource at random per second while active.
+        """
+
+        self.auto_mode_toggle = not self.auto_mode_toggle
+        if self.auto_mode_toggle:
+            self.frame_stats.button_auto_mode.configure(text='Auto On')
+            self.after(100, self.auto_mode_allocate)
+        else:
+            self.frame_stats.button_auto_mode.configure(text='Auto Off')
+
+    def auto_mode_allocate(
+            self,
+    ) -> None:
+        """
+        If auto mode toggle is active, allocate one resource, then queue self again after one second.
+        """
+
+        if self.auto_mode_toggle:
+            random_user_id = self.config.rng.choice(range(sum(self.config.num_users.values())))
+            self.allocate_resource(user_id=random_user_id)
+            self.after(ms=498, func=self.auto_mode_allocate)
 
     def allocate_resource(
             self,

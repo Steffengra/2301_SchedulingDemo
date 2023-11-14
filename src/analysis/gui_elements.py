@@ -332,6 +332,7 @@ class ScreenStats(tk.Frame):
             pixels_per_inch: int,
             button_timer_image_path: Path,
             button_timer_callback,
+            button_auto_mode_callback,
             **kwargs,
     ) -> None:
 
@@ -362,6 +363,15 @@ class ScreenStats(tk.Frame):
             **config_gui.button_panic_config,
         )
 
+        self.button_auto_mode = tk.Button(
+            self.frame_countdown_button,
+            text='Auto Off',
+            image=self.pixel,
+            compound=tk.CENTER,
+            command=button_auto_mode_callback,
+            **config_gui.button_panic_config,
+        )
+
         # Fig Lifetime Stats
         self.label_lifetime_stats_title = tk.Label(self.frame_lifetime_stats, **config_gui.label_lifetime_stats_title_config)
         self.lifetime_stats = FigLifetimeStats(master=self.frame_lifetime_stats, fig_width=0.3*window_width/pixels_per_inch, **config_gui.fig_lifetime_stats_config)
@@ -380,7 +390,8 @@ class ScreenStats(tk.Frame):
         self.frame_lifetime_stats.pack(expand=True)
         self.frame_instant_stats.pack(expand=True)
 
-        self.button_timer.pack(side=tk.TOP, fill=tk.BOTH)
+        self.button_timer.pack(side=tk.LEFT, expand=True)
+        self.button_auto_mode.pack(side=tk.LEFT, expand=True)
 
         self.label_lifetime_stats_title.pack()
         self.lifetime_stats.place()
