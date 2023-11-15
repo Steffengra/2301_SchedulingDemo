@@ -48,7 +48,7 @@ class Config:
         }
         self.probs_new_job: dict = {
             'Normal': 1.0,
-            'Ambulance': 0.5,
+            'Ambulance': 0.8,
         }
         self.rayleigh_fading_scale: float = 1e-8
 
