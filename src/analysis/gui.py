@@ -23,6 +23,7 @@ from src.data.scheduling_data import (
 from src.analysis.gui_elements import (
     Scenario,
     ScreenSelector,
+    ScreenActionButtons,
     ScreenResults,
     ScreenStats,
 )
@@ -114,10 +115,6 @@ class App(tk.Tk):
         self.images_channelstrength = [
             Image.open(Path(project_root_path, 'src', 'analysis', 'img', channel_strength_indicator_img))
             for channel_strength_indicator_img in self.config_gui.channel_strength_indicator_imgs
-            # Image.open(Path(project_root_path, 'src', 'analysis', 'img', 'low.png')),
-            # Image.open(Path(project_root_path, 'src', 'analysis', 'img', 'medlow.png')),
-            # Image.open(Path(project_root_path, 'src', 'analysis', 'img', 'medhigh.png')),
-            # Image.open(Path(project_root_path, 'src', 'analysis', 'img', 'high.png')),
         ]
         self.tk_images_channel_strength = [
             ImageTk.PhotoImage(image_channel_strength.resize((
@@ -126,6 +123,17 @@ class App(tk.Tk):
             )))
             for image_channel_strength in self.images_channelstrength
         ]
+
+        # Load button images for later use
+        button_timer_image_height = int(self.config_gui.button_countdown_img_scale * self.window_height)
+        button_countdown_image = Image.open(Path(project_root_path, 'src', 'analysis', 'img', self.config_gui.button_countdown_img))
+        button_countdown_image = button_countdown_image.resize((
+            get_width_rescale_constant_aspect_ratio(button_countdown_image, button_timer_image_height),
+            button_timer_image_height,
+        ))
+        self.tk_image_button_countdown = ImageTk.PhotoImage(button_countdown_image)
+        self.config_gui.button_countdown_config['image'] = self.tk_image_button_countdown
+        self.tk_image_pixel = tk.PhotoImage(width=1, height=1)  # workaround so button doesn't resize on click
 
         # Scenario - left hand side of the screen
         self.frame_scenario = Scenario(
@@ -156,6 +164,16 @@ class App(tk.Tk):
             **self.config_gui.frames_config
         )
 
+        # Screen action buttons - below screen selector buttons
+        self.frame_screen_action_buttons = ScreenActionButtons(
+            master=self,
+            config_gui=self.config_gui,
+            window_width=self.window_width,
+            window_height=self.window_height,
+            button_commands=[self.callback_button_timer, self.callback_button_auto_mode, self.callback_button_reset],
+            **self.config_gui.frames_config
+        )
+
         # Results - bottom right hand side of screen, switched via screen selector buttons
         self.frame_results = ScreenResults(
             master=self,
@@ -174,22 +192,22 @@ class App(tk.Tk):
             window_width=self.window_width,
             config_gui=self.config_gui,
             pixels_per_inch=self.pixels_per_inch,
-            button_timer_image_path=Path(project_root_path, 'src', 'analysis', 'img', self.config_gui.button_panic_img),
-            button_timer_callback=self.callback_button_timer,
-            button_auto_mode_callback=self.callback_button_auto_mode,
             **self.config_gui.frames_config
         )
 
         # Place frames
         self.frame_scenario.place(relx=0.0)
 
-        self.frame_screen_selector.place(relx=.7)
+        self.frame_screen_selector.place(relx=.7, rely=0.1)
         self.frame_screen_selector.pack_propagate(False)
 
-        self.frame_results.place(relx=.7, rely=.1)
+        self.frame_screen_action_buttons.place(relx=.7, rely=0.0)
+        self.frame_screen_action_buttons.pack_propagate(False)
+
+        self.frame_results.place(relx=.7, rely=.2)
         self.frame_results.pack_propagate(False)
 
-        self.frame_stats.place(relx=.7, rely=0.1)
+        self.frame_stats.place(relx=.7, rely=0.2)
         self.frame_stats.pack_propagate(False)
 
         # Separator Vertical
@@ -222,7 +240,7 @@ class App(tk.Tk):
                 self.countdown_value = self.config_gui.countdown_reset_value_seconds
 
             self.countdown_value -= 1
-            self.frame_stats.button_timer.configure(text=f'{self.countdown_value}', image=self.frame_stats.pixel)  # workaround so button doesn't resize on click
+            self.frame_screen_action_buttons.button_countdown.configure(text=f'{self.countdown_value}', image=self.tk_image_pixel)  # workaround so button doesn't resize on click
             self.after(1000, self.check_loop)
 
     def change_to_frame_allocations(
@@ -259,7 +277,7 @@ class App(tk.Tk):
             self.after(1000, self.check_loop)
 
         if not self.countdown_toggle:
-            self.frame_stats.button_timer.configure(text='', image=self.frame_stats.tk_image_stopwatch)
+            self.frame_screen_action_buttons.button_countdown.configure(text='', image=self.tk_image_button_countdown)
 
     def callback_button_auto_mode(
             self,
@@ -270,10 +288,10 @@ class App(tk.Tk):
 
         self.auto_mode_toggle = not self.auto_mode_toggle
         if self.auto_mode_toggle:
-            self.frame_stats.button_auto_mode.configure(text='Auto On')
+            self.frame_screen_action_buttons.button_auto.configure(text='Auto on')
             self.after(100, self.auto_mode_allocate)
         else:
-            self.frame_stats.button_auto_mode.configure(text='Auto Off')
+            self.frame_screen_action_buttons.button_auto.configure(text='Auto off')
 
     def auto_mode_allocate(
             self,
@@ -286,6 +304,49 @@ class App(tk.Tk):
             random_user_id = self.config.rng.choice(range(sum(self.config.num_users.values())))
             self.allocate_resource(user_id=random_user_id)
             self.after(ms=498, func=self.auto_mode_allocate)
+
+    def callback_button_reset(
+            self,
+    ) -> None:
+        """
+        Reset all states and statistics.
+        """
+
+        # toggle off auto mode
+        if self.auto_mode_toggle:
+            self.callback_button_auto_mode()
+
+        # toggle off countdown mode
+        if self.countdown_toggle:
+            self.callback_button_timer()
+
+        # reset primary resource grid
+        self.frame_scenario.resource_grid.clear()
+
+        # Reset last allocation indicator
+        empty_allocation = {ue: 0 for ue in range(sum(self.config.num_users.values()))}
+        empty_allocation_color_dict = {ue: 'white' for ue in range(sum(self.config.num_users.values()))}
+        for allocator in self.config_gui.allocator_names:
+            self.frame_results.resource_grids[allocator].fill(
+                allocation=empty_allocation,
+                color_dict=empty_allocation_color_dict,
+            )
+
+        # reset instant stats
+        self.frame_stats.instant_stats.clear()
+        self.frame_results.instant_stats.clear()
+        self.frame_stats.instant_stats.draw_instant_stats_table(data=np.array([[0.0] * 4] * 4), **self.config_gui.fig_instant_stats_config)
+        self.frame_results.instant_stats.draw_instant_stats_table(data=np.array([[0.0] * 4] * 4), **self.config_gui.fig_instant_stats_config)
+
+        # Reset lifetime stats
+        for learner_name in ['self'] + list(self.config_gui.learned_agents.keys()):  # learned algorithms
+            self.lifetime_stats[learner_name] = {
+                'sumrate': [],
+                'fairness': [],
+                'timeouts': [],
+                'overall': [],
+            }
+        self.frame_stats.lifetime_stats.update(values=[0]*(len(self.config_gui.learned_agents_display_names)+1))
 
     def allocate_resource(
             self,

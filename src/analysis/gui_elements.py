@@ -242,6 +242,49 @@ class ScreenSelector(tk.Frame):
         self.screen_selector_button_stats.pack(side=tk.LEFT, expand=True, fill=tk.BOTH)
 
 
+class ScreenActionButtons(tk.Frame):
+    """
+    Buttons that cause an action, e.g., timer, reset, ...
+    """
+
+    def __init__(
+            self,
+            config_gui: 'src.config.config_gui.ConfigGUI',
+            window_width: int,
+            window_height: int,
+            button_commands: list,
+            **kwargs,
+    ) -> None:
+
+        super().__init__(width=0.3 * window_width, height=0.1 * window_height, **kwargs)
+
+        self.button_countdown = tk.Button(
+            self,
+            command=button_commands[0],
+            **config_gui.button_countdown_config,
+        )
+        self.button_auto = tk.Button(
+            self,
+            command=button_commands[1],
+            **config_gui.button_auto_config,
+        )
+        self.button_reset = tk.Button(
+            self,
+            command=button_commands[2],
+            **config_gui.button_reset_config,
+        )
+
+        self._place_items()
+
+    def _place_items(
+            self,
+    ) -> None:
+
+        self.button_countdown.pack(side=tk.LEFT, expand=True, fill=tk.BOTH)
+        self.button_auto.pack(side=tk.LEFT, expand=True, fill=tk.BOTH)
+        self.button_reset.pack(side=tk.LEFT, expand=True, fill=tk.BOTH)
+
+
 class ScreenResults(tk.Frame):
     """
     One choice of frame for the right hand side of screen. Compares the last allocations of
@@ -258,7 +301,7 @@ class ScreenResults(tk.Frame):
             **kwargs,
     ) -> None:
 
-        super().__init__(width=.3 * window_width, height=0.9 * window_height, **kwargs)
+        super().__init__(width=.3 * window_width, height=0.8 * window_height, **kwargs)
 
         # Frame to hold frame title & resource grids frame
         self.frame_allocations = tk.Frame(master=self, height=0.7 * window_height, **config_gui.frames_config)
@@ -330,47 +373,15 @@ class ScreenStats(tk.Frame):
             window_height: int,
             config_gui: 'src.config.config_gui.ConfigGUI',
             pixels_per_inch: int,
-            button_timer_image_path: Path,
-            button_timer_callback,
-            button_auto_mode_callback,
             **kwargs,
     ) -> None:
 
-        super().__init__(width=.3 * window_width, height=0.9 * window_height, **kwargs)
-
-        button_timer_image_height = int(config_gui.label_img_user_height_scale * window_height)
+        super().__init__(width=.3 * window_width, height=0.8 * window_height, **kwargs)
 
         # Frames
         self.frame_countdown_button = tk.Frame(master=self, **config_gui.frames_config)
         self.frame_lifetime_stats = tk.Frame(master=self, **config_gui.frames_config)
         self.frame_instant_stats = tk.Frame(master=self, **config_gui.frames_config)
-
-        # Button Timer
-        self.image_stopwatch = Image.open(button_timer_image_path)
-        self.image_stopwatch = self.image_stopwatch.resize((
-            get_width_rescale_constant_aspect_ratio(self.image_stopwatch, button_timer_image_height),
-            button_timer_image_height,
-        ))
-        self.tk_image_stopwatch = ImageTk.PhotoImage(self.image_stopwatch)
-        self.pixel = tk.PhotoImage(width=1, height=1)  # workaround so button doesn't resize on click
-
-        self.button_timer = tk.Button(
-            self.frame_countdown_button,
-            text='',
-            image=self.tk_image_stopwatch,
-            compound=tk.CENTER,
-            command=button_timer_callback,
-            **config_gui.button_panic_config,
-        )
-
-        self.button_auto_mode = tk.Button(
-            self.frame_countdown_button,
-            text='Auto Off',
-            image=self.pixel,
-            compound=tk.CENTER,
-            command=button_auto_mode_callback,
-            **config_gui.button_panic_config,
-        )
 
         # Fig Lifetime Stats
         self.label_lifetime_stats_title = tk.Label(self.frame_lifetime_stats, **config_gui.label_lifetime_stats_title_config)
@@ -389,9 +400,6 @@ class ScreenStats(tk.Frame):
         self.frame_countdown_button.pack(expand=True)
         self.frame_lifetime_stats.pack(expand=True)
         self.frame_instant_stats.pack(expand=True)
-
-        self.button_timer.pack(side=tk.LEFT, expand=True)
-        self.button_auto_mode.pack(side=tk.LEFT, expand=True)
 
         self.label_lifetime_stats_title.pack()
         self.lifetime_stats.place()
@@ -483,14 +491,14 @@ class FigInstantStats:
             table_config: dict,
     ) -> None:
 
-        self.fig = plt.Figure(figsize=(fig_width, 0.25*fig_width))
+        self.fig = plt.Figure(figsize=(fig_width, 0.32*fig_width))
         self.ax = self.fig.add_subplot()
         self.ax.axis('tight')
         self.ax.axis('off')
 
         self.canvas = FigureCanvasTkAgg(self.fig, master=master)
 
-        data = np.array([[0] * 4] * 4)
+        data = np.array([[0.0] * 4] * 4)
         self.fig.tight_layout()
         self.draw_instant_stats_table(data=data, **table_config)
         self.fig.tight_layout()
@@ -529,7 +537,8 @@ class FigInstantStats:
         )
         table_instant_stats.auto_set_font_size(False)
         table_instant_stats.set_fontsize(font_size)
-        table_instant_stats.scale(xscale=1.1, yscale=1.5)  # scale cell boundaries
+        # table_instant_stats.auto_set_column_width(range(len(colors)+1))
+        table_instant_stats.scale(xscale=1.0, yscale=1.9)  # scale cell boundaries
 
         self.canvas.draw()
 

@@ -64,6 +64,7 @@ class ConfigGUI:
         self.label_resource_border_width = 2
 
         self.button_screen_selector_font = ('Arial', int(global_font_scale * 25))
+        self.button_action_font = ('Arial', int(global_font_scale * 25))
 
         self.table_instant_stats_font_size = int(global_font_scale * 11)
 
@@ -74,12 +75,8 @@ class ConfigGUI:
         self.label_resource_grid_title_font = ('Arial', int(global_font_scale * 15))
         self.label_resource_small_scaling: float = 0.5
 
-        self.button_panic_img = 'stopwatch.png'
-        self.button_panic_font = ('Arial', int(global_font_scale * 25))
-        self.button_panic_width = 190  # relative to image size
-        self.button_panic_height = 190  # relative to image size
-        self.button_panic_border_width = 30
-        self.button_panic_color = self.cp3['white']
+        self.button_countdown_img = 'stopwatch.png'
+        self.button_countdown_img_scale = 0.07
 
         self.countdown_reset_value_seconds: int = 10
 
@@ -123,6 +120,14 @@ class ConfigGUI:
             'compound': CENTER,
         }
 
+        self.button_action_config = {
+            'font': self.button_action_font,
+            'width': 1,  # small value for even distribution
+            'borderwidth': 7,
+            'bg': 'white',
+            'compound': CENTER,
+        }
+
         self.button_screen_selector_allocations_config = {
             'text': self.button_screen_selector_allocations_text,
             **self.button_screen_selector_config
@@ -133,12 +138,18 @@ class ConfigGUI:
             **self.button_screen_selector_config,
         }
 
-        self.button_panic_config = {
-            'font': self.button_panic_font,
-            'width': self.button_panic_width,
-            'height': self.button_panic_height,
-            'bg': self.button_panic_color,
-            'borderwidth': self.button_panic_border_width,
+        self.button_countdown_config = {
+            **self.button_action_config,
+        }
+
+        self.button_auto_config = {
+            'text': 'Auto',
+            **self.button_action_config,
+        }
+
+        self.button_reset_config = {
+            'text': 'Reset',
+            **self.button_action_config,
         }
 
         self.labels_config = {
