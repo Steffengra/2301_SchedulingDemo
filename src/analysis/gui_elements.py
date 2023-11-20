@@ -226,10 +226,15 @@ class ScreenSelector(tk.Frame):
             command=button_commands[0],
             **config_gui.button_screen_selector_allocations_config,
         )
-        self.screen_selector_button_stats = tk.Button(
+        self.screen_selector_button_instant_stats = tk.Button(
             self,
             command=button_commands[1],
-            **config_gui.button_screen_selector_stats_config
+            **config_gui.button_screen_selector_instant_stats_config,
+        )
+        self.screen_selector_button_lifetime_stats = tk.Button(
+            self,
+            command=button_commands[2],
+            **config_gui.button_screen_selector_lifetime_stats_config,
         )
 
         self._place_items()
@@ -239,12 +244,13 @@ class ScreenSelector(tk.Frame):
     ) -> None:
 
         self.screen_selector_button_allocations.pack(side=tk.LEFT, expand=True, fill=tk.BOTH)
-        self.screen_selector_button_stats.pack(side=tk.LEFT, expand=True, fill=tk.BOTH)
+        # self.screen_selector_button_instant_stats.pack(side=tk.LEFT, expand=True, fill=tk.BOTH)
+        self.screen_selector_button_lifetime_stats.pack(side=tk.LEFT, expand=True, fill=tk.BOTH)
 
 
 class ScreenActionButtons(tk.Frame):
     """
-    Buttons that cause an action, e.g., timer, reset, ...
+    Buttons that cause an action, e.g., countdown, reset, ...
     """
 
     def __init__(
@@ -285,7 +291,7 @@ class ScreenActionButtons(tk.Frame):
         self.button_reset.pack(side=tk.LEFT, expand=True, fill=tk.BOTH)
 
 
-class ScreenResults(tk.Frame):
+class ScreenAllocations(tk.Frame):
     """
     One choice of frame for the right hand side of screen. Compares the last allocations of
     all agents (user + learned agents), and their immediate results.
@@ -336,7 +342,7 @@ class ScreenResults(tk.Frame):
         self.frame_instant_stats = tk.Frame(master=self, **config_gui.frames_config)
 
         self.label_instant_stats_title = tk.Label(self.frame_instant_stats, **config_gui.label_instant_stats_title_config)
-        self.instant_stats = FigInstantStats(self.frame_instant_stats, fig_width=0.3*window_width/pixels_per_inch, table_config=config_gui.fig_instant_stats_config)
+        self.instant_stats = FigInstantStatsTable(self.frame_instant_stats, fig_width=0.3 * window_width / pixels_per_inch, table_config=config_gui.fig_instant_stats_config)
 
         self._place_items()
 
@@ -360,11 +366,9 @@ class ScreenResults(tk.Frame):
         self.instant_stats.place()
 
 
-class ScreenStats(tk.Frame):
+class ScreenInstantStats(tk.Frame):
     """
-    One choice of frame for the right hand side of screen. Holds the countdown button,
-    instantaneous results of the last allocation, and the lifetime average of
-    each schedulers' overall performance.
+    One choice of frame for the right hand side of screen. Holds detailed information about the last allocation.
     """
 
     def __init__(
@@ -379,7 +383,6 @@ class ScreenStats(tk.Frame):
         super().__init__(width=.3 * window_width, height=0.8 * window_height, **kwargs)
 
         # Frames
-        self.frame_countdown_button = tk.Frame(master=self, **config_gui.frames_config)
         self.frame_lifetime_stats = tk.Frame(master=self, **config_gui.frames_config)
         self.frame_instant_stats = tk.Frame(master=self, **config_gui.frames_config)
 
@@ -389,7 +392,7 @@ class ScreenStats(tk.Frame):
 
         # Fig Instant Stats
         self.label_instant_stats_title = tk.Label(self.frame_instant_stats, **config_gui.label_instant_stats_title_config)
-        self.instant_stats = FigInstantStats(self.frame_instant_stats, fig_width=0.3*window_width/pixels_per_inch, table_config=config_gui.fig_instant_stats_config)
+        self.instant_stats = FigInstantStatsTable(self.frame_instant_stats, fig_width=0.3 * window_width / pixels_per_inch, table_config=config_gui.fig_instant_stats_config)
 
         self._place_items()
 
@@ -397,7 +400,6 @@ class ScreenStats(tk.Frame):
             self,
     ) -> None:
 
-        self.frame_countdown_button.pack(expand=True)
         self.frame_lifetime_stats.pack(expand=True)
         self.frame_instant_stats.pack(expand=True)
 
@@ -406,6 +408,62 @@ class ScreenStats(tk.Frame):
 
         self.label_instant_stats_title.pack()
         self.instant_stats.place()
+
+
+class ScreenLifetimeStats(tk.Frame):
+    """
+    One choice of frame for the right hand side of screen. Holds detailed information about lifetime sum stats.
+    """
+
+    def __init__(
+            self,
+            window_width: int,
+            window_height: int,
+            config_gui: 'src.config.config_gui.ConfigGUI',
+            pixels_per_inch: int,
+            **kwargs,
+    ) -> None:
+
+        super().__init__(width=.3 * window_width, height=0.8 * window_height, **kwargs)
+
+        # Frames
+        self.frame_throughput = tk.Frame(master=self, **config_gui.frames_config)
+        self.frame_fairness = tk.Frame(master=self, **config_gui.frames_config)
+        self.frame_deaths = tk.Frame(master=self, **config_gui.frames_config)
+        self.frame_overall = tk.Frame(master=self, **config_gui.frames_config)
+
+        self.label_title = tk.Label(self, **config_gui.label_lifetime_stats_title_config)
+
+        # Fig Lifetime Stats
+        self.fig_throughput = FigLifetimeStatsBars(master=self.frame_throughput, fig_width=0.3*window_width/pixels_per_inch, **config_gui.fig_lifetime_stats_bars_throughput_config)
+        self.fig_fairness = FigLifetimeStatsBars(master=self.frame_fairness, fig_width=0.3*window_width/pixels_per_inch, **config_gui.fig_lifetime_stats_bars_fairness_config)
+        self.fig_deaths = FigLifetimeStatsBars(master=self.frame_deaths, fig_width=0.3*window_width/pixels_per_inch, **config_gui.fig_lifetime_stats_bars_deaths_config)
+        self.fig_overall = FigLifetimeStatsBars(master=self.frame_overall, fig_width=0.3*window_width/pixels_per_inch, **config_gui.fig_lifetime_stats_bars_overall_config)
+
+
+
+        # self.label_lifetime_stats_title = tk.Label(self.frame_lifetime_stats, **config_gui.label_lifetime_stats_title_config)
+        # self.lifetime_stats = FigLifetimeStats(master=self.frame_lifetime_stats, fig_width=0.3*window_width/pixels_per_inch, **config_gui.fig_lifetime_stats_config)
+        #
+        # # Fig Instant Stats
+        # self.label_instant_stats_title = tk.Label(self.frame_instant_stats, **config_gui.label_instant_stats_title_config)
+        # self.instant_stats = FigInstantStatsTable(self.frame_instant_stats, fig_width=0.3 * window_width / pixels_per_inch, table_config=config_gui.fig_instant_stats_config)
+
+        self._place_items()
+
+    def _place_items(
+            self,
+    ) -> None:
+
+        self.label_title.pack(expand=True)
+        self.frame_throughput.pack(expand=True)
+        self.frame_fairness.pack(expand=True)
+        self.frame_deaths.pack(expand=True)
+        self.frame_overall.pack(expand=True)
+        self.fig_throughput.place()
+        self.fig_fairness.place()
+        self.fig_deaths.place()
+        self.fig_overall.place()
 
 
 class ResourceGrid:
@@ -479,7 +537,7 @@ class ResourceGrid:
         self.pointer = 0
 
 
-class FigInstantStats:
+class FigInstantStatsTable:
     """
     Figure that holds a table to display metrics of the most recent allocation.
     """
@@ -540,6 +598,117 @@ class FigInstantStats:
         # table_instant_stats.auto_set_column_width(range(len(colors)+1))
         table_instant_stats.scale(xscale=1.0, yscale=1.9)  # scale cell boundaries
 
+        self.canvas.draw()
+
+
+class FigInstantStatsBars:
+    """Figure displays bar charts for one particular metric"""
+
+    def __init__(
+            self,
+    ) -> None:
+
+        pass
+
+
+class FigLifetimeStatsBars:
+    """Displays lifetime stats for one particular metric in a stacked bar chart"""
+
+    def __init__(
+            self,
+            master: tk. Frame,
+            fig_width: float,
+            column_labels: list[str],
+            font_size: int,
+            bar_colors: str,
+            xlim_max_initial: float,
+            title: str,
+    ) -> None:
+
+        self.bar_colors = bar_colors
+        self.bar_color_toggle = False
+        self.xlim_max_initial = xlim_max_initial
+        self.xlim_max_current = xlim_max_initial
+        self.column_labels = column_labels
+        self.font_size = font_size
+        self.title = title
+
+        self.fig, self.ax = plt.subplots(figsize=(fig_width, 0.3*fig_width))
+        self._fig_setup()
+
+        self.canvas = FigureCanvasTkAgg(self.fig, master=master)
+        self.canvas.draw()
+
+    def _fig_setup(
+            self,
+    ) -> None:
+        t = range(4)
+        self.left = np.zeros(4)
+        self.last_bars = self.ax.barh(
+            y=t,
+            width=np.zeros(4),
+            height=0.8,
+            left=self.left,
+            edgecolor='black',
+        )
+
+        self.ax.set_xlim([0, self.xlim_max_initial])
+        self.ax.set_yticks(range(len(t)), reversed(self.column_labels), fontsize=self.font_size)
+        self.ax.spines['top'].set_visible(False)
+        self.ax.spines['right'].set_visible(False)
+        self.ax.spines['bottom'].set_visible(False)
+        self.ax.set_xticks([])
+        self.ax.set_title(self.title)
+        self.fig.tight_layout()
+
+    def place(
+            self,
+    ) -> None:
+        self.canvas.get_tk_widget().pack(side=tk.TOP)
+
+    def update(
+            self,
+            new_values,
+    ) -> None:
+
+        new_values_reversed = np.array(list(reversed(new_values)))
+
+        t = range(4)
+        current_bars = self.ax.barh(
+            y=t,
+            width=np.where(new_values_reversed > 0, new_values_reversed, 0),
+            height=0.8,
+            left=self.left,
+            color=self.bar_colors[0] if self.bar_color_toggle else self.bar_colors[1],
+            edgecolor=['white' if new_values_reversed[entry_id] < 0 else 'black' for entry_id in range(4)],
+        )
+
+        # shorten previous bar if negative value
+        # todo: there will be some inaccuracies here if current negative is greater than last bar positive
+        for new_value_id, new_value in enumerate(new_values_reversed):
+            if new_value < 0:
+                last_width = self.last_bars[new_value_id].get_width()
+
+                self.last_bars[new_value_id].set_width(max(0, last_width + new_value))
+
+        self.last_bars = current_bars
+
+        self.left += new_values_reversed
+        self.bar_color_toggle = not self.bar_color_toggle
+
+        # rescale axes
+        if any(self.left > self.xlim_max_current):
+            self.xlim_max_current = max(self.left) + 0.5 * max(new_values_reversed)
+            self.ax.set_xlim([0, self.xlim_max_current])
+
+        self.canvas.draw()
+
+    def clear(
+            self,
+    ) -> None:
+
+        self.ax.clear()
+        self._fig_setup()
         self.canvas.draw()
 
 

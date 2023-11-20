@@ -2,6 +2,7 @@
 from tkinter import (
     LEFT,
     CENTER,
+    TOP,
 )
 from pathlib import (
     Path,
@@ -35,6 +36,14 @@ class ConfigGUI:
             'FunKI_Logo_final_4C.png',
         ]
         self.label_img_logos_height_scale = 0.07
+
+        self.rigged_start_states = [  # [[user0jobsize, user0powergain], [user1jobsize, user1powergain], ...]
+            [[3, 9], [4, 1], [1, 1], [3, 16]],
+            [[5, 16], [7, 9], [0, 1], [5, 1]],
+            [[3, 16], [6, 9], [3, 1], [0, 4]],
+        ]
+
+        # -----------------------------------------------------------
 
         self.label_title_font = ('Arial', int(global_font_scale * 60))
 
@@ -70,13 +79,18 @@ class ConfigGUI:
 
         self.fig_lifetime_stats_font_size = int(global_font_scale * 11)
         self.fig_lifetime_stats_bar_color = self.cp3['blue3']
+        self.fig_lifetime_stats_bar_colors_positive = [self.cp3['blue3'], self.cp3['blue3']]
+        self.fig_lifetime_stats_bar_colors_negative = [self.cp3['red3'], self.cp3['red3']]
         self.fig_lifetime_stats_color_gradient = [self.cp3['red2'], self.cp3['blue3'], self.cp3['blue2']]
 
         self.label_resource_grid_title_font = ('Arial', int(global_font_scale * 15))
         self.label_resource_small_scaling: float = 0.5
 
-        self.button_countdown_img = 'stopwatch.png'
-        self.button_countdown_img_scale = 0.07
+        self.button_countdown_img = 'stopwatch2.png'
+        self.button_countdown_img_scale = 0.045
+
+        self.button_auto_img = 'robot2.png'
+        self.button_reset_img = 'reset2.png'
 
         self.countdown_reset_value_seconds: int = 10
 
@@ -114,7 +128,7 @@ class ConfigGUI:
 
         self.button_screen_selector_config = {
             'font': self.button_screen_selector_font,
-            'width': 15,
+            'width': 1,
             'borderwidth': 3,
             'bg': 'white',
             'compound': CENTER,
@@ -125,20 +139,25 @@ class ConfigGUI:
             'width': 1,  # small value for even distribution
             'borderwidth': 7,
             'bg': 'white',
-            'compound': CENTER,
+            'compound': TOP,
         }
 
         self.button_screen_selector_allocations_config = {
             'text': self.button_screen_selector_allocations_text,
-            **self.button_screen_selector_config
+            **self.button_screen_selector_config,
         }
 
-        self.button_screen_selector_stats_config = {
-            'text': self.button_screen_selector_stats_text,
+        self.button_screen_selector_instant_stats_config = {
+            'text': self.button_screen_selector_instant_stats_text,
+            **self.button_screen_selector_config,
+        }
+        self.button_screen_selector_lifetime_stats_config = {
+            'text': self.button_screen_selector_lifetime_stats_text,
             **self.button_screen_selector_config,
         }
 
         self.button_countdown_config = {
+            'text': 'Countdown',
             **self.button_action_config,
         }
 
@@ -236,6 +255,34 @@ class ConfigGUI:
             'font_size': self.fig_lifetime_stats_font_size,
             'bar_color': self.fig_lifetime_stats_bar_color,
         }
+        self.fig_lifetime_stats_bars_config = {
+            'column_labels': self.allocator_names,
+            'font_size': self.fig_lifetime_stats_font_size,
+        }
+        self.fig_lifetime_stats_bars_throughput_config = {
+            'title': self.strings['stats'][0],
+            'bar_colors': self.fig_lifetime_stats_bar_colors_positive,
+            'xlim_max_initial': 100,
+            **self.fig_lifetime_stats_bars_config,
+        }
+        self.fig_lifetime_stats_bars_fairness_config = {
+            'title': self.strings['stats'][1],
+            'bar_colors': self.fig_lifetime_stats_bar_colors_positive,
+            'xlim_max_initial': 4,
+            **self.fig_lifetime_stats_bars_config,
+        }
+        self.fig_lifetime_stats_bars_deaths_config = {
+            'title': self.strings['stats'][2],
+            'bar_colors': self.fig_lifetime_stats_bar_colors_negative,
+            'xlim_max_initial': 4,
+            **self.fig_lifetime_stats_bars_config,
+        }
+        self.fig_lifetime_stats_bars_overall_config = {
+            'title': self.strings['stats'][3],
+            'bar_colors': self.fig_lifetime_stats_bar_colors_positive,
+            'xlim_max_initial': 4,
+            **self.fig_lifetime_stats_bars_config,
+        }
         self.fig_lifetime_stats_gradient_cmap = LinearSegmentedColormap.from_list('', self.fig_lifetime_stats_color_gradient)
         self.fig_lifetime_stats_gradient_cmap_reversed = LinearSegmentedColormap.from_list('', list(reversed(self.fig_lifetime_stats_color_gradient)))
 
@@ -244,7 +291,8 @@ class ConfigGUI:
     ) -> None:
 
         self.button_screen_selector_allocations_text = self.strings['button_screen_selector_allocations']
-        self.button_screen_selector_stats_text = self.strings['button_screen_selector_stats']
+        self.button_screen_selector_instant_stats_text = self.strings['button_screen_selector_instant_stats']
+        self.button_screen_selector_lifetime_stats_text = self.strings['button_screen_selector_lifetime_stats']
 
         self.label_title_text = self.strings['label_title']
         self.label_resource_grid_text = self.strings['label_resource_grid']

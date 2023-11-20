@@ -24,8 +24,9 @@ from src.analysis.gui_elements import (
     Scenario,
     ScreenSelector,
     ScreenActionButtons,
-    ScreenResults,
-    ScreenStats,
+    ScreenAllocations,
+    ScreenInstantStats,
+    ScreenLifetimeStats,
 )
 from src.utils.get_width_rescale_constant_aspect_ratio import get_width_rescale_constant_aspect_ratio
 
@@ -64,7 +65,13 @@ class App(tk.Tk):
         self.auto_mode_toggle = False
 
         # Set up sims to evaluate allocations
+        self.rigged_start_states = self.config_gui.rigged_start_states.copy()
+
         self.sim_main = SchedulingData(config=self.config)  # user sim
+        if len(self.rigged_start_states) > 0:
+            rigged_state = self.rigged_start_states.pop(0)
+            self.rig_sim_main_state(state=rigged_state)
+
         self.secondary_simulations = {  # learned algorithm sims
             learner_name: SchedulingData(config=self.config)
             for learner_name in self.config_gui.learned_agents.keys()
@@ -133,7 +140,22 @@ class App(tk.Tk):
         ))
         self.tk_image_button_countdown = ImageTk.PhotoImage(button_countdown_image)
         self.config_gui.button_countdown_config['image'] = self.tk_image_button_countdown
-        self.tk_image_pixel = tk.PhotoImage(width=1, height=1)  # workaround so button doesn't resize on click
+
+        button_auto_image = Image.open(Path(project_root_path, 'src', 'analysis', 'img', self.config_gui.button_auto_img))
+        button_auto_image = button_auto_image.resize((
+            get_width_rescale_constant_aspect_ratio(button_auto_image, button_timer_image_height),
+            button_timer_image_height,
+        ))
+        self.tk_image_button_auto = ImageTk.PhotoImage(button_auto_image)
+        self.config_gui.button_auto_config['image'] = self.tk_image_button_auto
+
+        button_reset_image = Image.open(Path(project_root_path, 'src', 'analysis', 'img', self.config_gui.button_reset_img))
+        button_reset_image = button_reset_image.resize((
+            get_width_rescale_constant_aspect_ratio(button_reset_image, button_timer_image_height),
+            button_timer_image_height,
+        ))
+        self.tk_image_button_reset = ImageTk.PhotoImage(button_reset_image)
+        self.config_gui.button_reset_config['image'] = self.tk_image_button_reset
 
         # Scenario - left hand side of the screen
         self.frame_scenario = Scenario(
@@ -160,8 +182,8 @@ class App(tk.Tk):
             config_gui=self.config_gui,
             window_width=self.window_width,
             window_height=self.window_height,
-            button_commands=[self.change_to_frame_allocations, self.change_to_frame_stats],
-            **self.config_gui.frames_config
+            button_commands=[self.change_to_frame_allocations, self.change_to_frame_instant_stats, self.change_to_frame_lifetime_stats],
+            **self.config_gui.frames_config,
         )
 
         # Screen action buttons - below screen selector buttons
@@ -171,28 +193,37 @@ class App(tk.Tk):
             window_width=self.window_width,
             window_height=self.window_height,
             button_commands=[self.callback_button_timer, self.callback_button_auto_mode, self.callback_button_reset],
-            **self.config_gui.frames_config
+            **self.config_gui.frames_config,
         )
 
         # Results - bottom right hand side of screen, switched via screen selector buttons
-        self.frame_results = ScreenResults(
+        self.frame_allocations = ScreenAllocations(
             master=self,
             config_gui=self.config_gui,
             window_width=self.window_width,
             window_height=self.window_height,
             pixels_per_inch=self.pixels_per_inch,
             num_total_resource_slots=self.config.num_total_resource_slots,
-            **self.config_gui.frames_config
+            **self.config_gui.frames_config,
         )
 
         # Stats - bottom right hand side of screen, switched via selector buttons
-        self.frame_stats = ScreenStats(
+        self.frame_instant_stats = ScreenInstantStats(
             master=self,
             window_height=self.window_height,
             window_width=self.window_width,
             config_gui=self.config_gui,
             pixels_per_inch=self.pixels_per_inch,
-            **self.config_gui.frames_config
+            **self.config_gui.frames_config,
+        )
+
+        self.frame_lifetime_stats = ScreenLifetimeStats(
+            master=self,
+            window_height=self.window_height,
+            window_width=self.window_width,
+            config_gui=self.config_gui,
+            pixels_per_inch=self.pixels_per_inch,
+            **self.config_gui.frames_config,
         )
 
         # Place frames
@@ -204,11 +235,14 @@ class App(tk.Tk):
         self.frame_screen_action_buttons.place(relx=.7, rely=0.0)
         self.frame_screen_action_buttons.pack_propagate(False)
 
-        self.frame_results.place(relx=.7, rely=.2)
-        self.frame_results.pack_propagate(False)
+        self.frame_allocations.place(relx=.7, rely=.2)
+        self.frame_allocations.pack_propagate(False)
 
-        self.frame_stats.place(relx=.7, rely=0.2)
-        self.frame_stats.pack_propagate(False)
+        self.frame_instant_stats.place(relx=.7, rely=0.2)
+        self.frame_instant_stats.pack_propagate(False)
+
+        self.frame_lifetime_stats.place(relx=.7, rely=0.2)
+        self.frame_lifetime_stats.pack_propagate(False)
 
         # Separator Vertical
         self.separator_vertical = ttk.Separator(self, orient='vertical')
@@ -216,9 +250,13 @@ class App(tk.Tk):
 
         # Aggregate button-selectable frames for easier bookkeeping
         self.selectable_frames = {
-            'AllocationResults': self.frame_stats,
-            'Stats': self.frame_results,
+            'Allocations': self.frame_allocations,
+            'InstantStats': self.frame_instant_stats,
+            'LifetimeStats': self.frame_lifetime_stats,
         }
+
+        # Raise as first frame
+        self.change_to_frame_allocations()
 
         # Initialize user text labels
         self.update_user_text_labels()
@@ -240,7 +278,7 @@ class App(tk.Tk):
                 self.countdown_value = self.config_gui.countdown_reset_value_seconds
 
             self.countdown_value -= 1
-            self.frame_screen_action_buttons.button_countdown.configure(text=f'{self.countdown_value}', image=self.tk_image_pixel)  # workaround so button doesn't resize on click
+            self.frame_screen_action_buttons.button_countdown.configure(text=f'{self.countdown_value}', image=self.tk_image_button_countdown)  # workaround so button doesn't resize on click
             self.after(1000, self.check_loop)
 
     def change_to_frame_allocations(
@@ -250,18 +288,28 @@ class App(tk.Tk):
         Raise frame results to the top.
         """
 
-        for frame in self.selectable_frames.values():
-            self.frame_results.tkraise(aboveThis=frame)
+        self.frame_allocations.tkraise()
+        self.separator_vertical.tkraise()
 
-    def change_to_frame_stats(
+    def change_to_frame_instant_stats(
             self,
     ) -> None:
         """
         Raise frame stats to the top.
         """
 
-        for frame in self.selectable_frames.values():
-            self.frame_stats.tkraise(aboveThis=frame)
+        self.frame_instant_stats.tkraise()
+        self.separator_vertical.tkraise()
+
+    def change_to_frame_lifetime_stats(
+            self,
+    ) -> None:
+        """
+        Raise frame lifetime stats to the top.
+        """
+
+        self.frame_lifetime_stats.tkraise()
+        self.separator_vertical.tkraise()
 
     def callback_button_timer(
             self,
@@ -277,7 +325,7 @@ class App(tk.Tk):
             self.after(1000, self.check_loop)
 
         if not self.countdown_toggle:
-            self.frame_screen_action_buttons.button_countdown.configure(text='', image=self.tk_image_button_countdown)
+            self.frame_screen_action_buttons.button_countdown.configure(text='Countdown', image=self.tk_image_button_countdown)
 
     def callback_button_auto_mode(
             self,
@@ -288,10 +336,10 @@ class App(tk.Tk):
 
         self.auto_mode_toggle = not self.auto_mode_toggle
         if self.auto_mode_toggle:
-            self.frame_screen_action_buttons.button_auto.configure(text='Auto on')
+            self.frame_screen_action_buttons.button_auto.configure(text='Auto on', image=self.tk_image_button_auto)
             self.after(100, self.auto_mode_allocate)
         else:
-            self.frame_screen_action_buttons.button_auto.configure(text='Auto off')
+            self.frame_screen_action_buttons.button_auto.configure(text='Auto', image=self.tk_image_button_auto)
 
     def auto_mode_allocate(
             self,
@@ -327,16 +375,16 @@ class App(tk.Tk):
         empty_allocation = {ue: 0 for ue in range(sum(self.config.num_users.values()))}
         empty_allocation_color_dict = {ue: 'white' for ue in range(sum(self.config.num_users.values()))}
         for allocator in self.config_gui.allocator_names:
-            self.frame_results.resource_grids[allocator].fill(
+            self.frame_allocations.resource_grids[allocator].fill(
                 allocation=empty_allocation,
                 color_dict=empty_allocation_color_dict,
             )
 
         # reset instant stats
-        self.frame_stats.instant_stats.clear()
-        self.frame_results.instant_stats.clear()
-        self.frame_stats.instant_stats.draw_instant_stats_table(data=np.array([[0.0] * 4] * 4), **self.config_gui.fig_instant_stats_config)
-        self.frame_results.instant_stats.draw_instant_stats_table(data=np.array([[0.0] * 4] * 4), **self.config_gui.fig_instant_stats_config)
+        self.frame_instant_stats.instant_stats.clear()
+        self.frame_allocations.instant_stats.clear()
+        self.frame_instant_stats.instant_stats.draw_instant_stats_table(data=np.array([[0.0] * 4] * 4), **self.config_gui.fig_instant_stats_config)
+        self.frame_allocations.instant_stats.draw_instant_stats_table(data=np.array([[0.0] * 4] * 4), **self.config_gui.fig_instant_stats_config)
 
         # Reset lifetime stats
         for learner_name in ['self'] + list(self.config_gui.learned_agents.keys()):  # learned algorithms
@@ -346,7 +394,19 @@ class App(tk.Tk):
                 'timeouts': [],
                 'overall': [],
             }
-        self.frame_stats.lifetime_stats.update(values=[0]*(len(self.config_gui.learned_agents_display_names)+1))
+        self.frame_instant_stats.lifetime_stats.update(values=[0] * (len(self.config_gui.learned_agents_display_names) + 1))
+        self.frame_lifetime_stats.fig_throughput.clear()
+        self.frame_lifetime_stats.fig_fairness.clear()
+        self.frame_lifetime_stats.fig_deaths.clear()
+        self.frame_lifetime_stats.fig_overall.clear()
+
+        # reset rigged start states
+        self.rigged_start_states = self.config_gui.rigged_start_states.copy()
+        if len(self.rigged_start_states) > 0:
+            rigged_state = self.rigged_start_states.pop(0)
+            self.rig_sim_main_state(state=rigged_state)
+            self.update_user_text_labels()
+            self.update_secondary_simulations()
 
     def allocate_resource(
             self,
@@ -369,6 +429,19 @@ class App(tk.Tk):
         if current_resource_pointer == self.config.num_total_resource_slots:
             self.after(100, self.evaluate_allocation)  # small delay makes it feel more natural
 
+    def rig_sim_main_state(
+            self,
+            state: list,
+    ) -> None:
+        """
+        Cheat by setting a specific simulation state.
+        :param state: [[user0jobsize, user0powergain], [user1jobsize, user1powergain], ...]
+        """
+
+        for user_id, user_state in enumerate(state):
+            self.sim_main.users[user_id].generate_specific_job(user_state[0])
+            self.sim_main.users[user_id].set_specific_power_gain(user_state[1])
+
     def evaluate_allocation(
             self,
     ) -> None:
@@ -381,13 +454,17 @@ class App(tk.Tk):
         action = action.astype('float32')
 
         # Fill the small allocation resource grid with user allocation
-        self.frame_results.resource_grids[self.config_gui.allocator_names[0]].fill(
+        self.frame_allocations.resource_grids[self.config_gui.allocator_names[0]].fill(
             allocation=self.get_allocated_slots(percentage_allocation_solution=action, sim=self.sim_main),
             color_dict=self.config_gui.user_colors,
         )
 
         # Calculate achieved metrics
         reward, reward_components = self.sim_main.step(percentage_allocation_solution=action)
+
+        if len(self.rigged_start_states) > 0:
+            rigged_state = self.rigged_start_states.pop(0)
+            self.rig_sim_main_state(state=rigged_state)
 
         # Format for table display
         instant_stats = [[
@@ -410,7 +487,7 @@ class App(tk.Tk):
             action = learner.call(self.secondary_simulations[learner_name].get_state()[np.newaxis]).numpy().squeeze()
 
             # Fill the small allocation resource grid with user allocation
-            self.frame_results.resource_grids[self.config_gui.learned_agents_display_names[learner_name]].fill(
+            self.frame_allocations.resource_grids[self.config_gui.learned_agents_display_names[learner_name]].fill(
                 allocation=self.get_allocated_slots(percentage_allocation_solution=action, sim=self.secondary_simulations[learner_name]),
                 color_dict=self.config_gui.user_colors,
             )
@@ -439,7 +516,12 @@ class App(tk.Tk):
 
         # Calculate new lifetime stats and display them
         mean_rewards = [np.mean(self.lifetime_stats[member]['overall']) for member in self.lifetime_stats.keys()]
-        self.frame_stats.lifetime_stats.update(values=mean_rewards)
+        self.frame_instant_stats.lifetime_stats.update(values=mean_rewards)
+
+        self.frame_lifetime_stats.fig_throughput.update([self.lifetime_stats[member]['sumrate'][-1] for member in self.lifetime_stats.keys()])
+        self.frame_lifetime_stats.fig_fairness.update([self.lifetime_stats[member]['fairness'][-1] for member in self.lifetime_stats.keys()])
+        self.frame_lifetime_stats.fig_deaths.update([self.lifetime_stats[member]['timeouts'][-1] for member in self.lifetime_stats.keys()])
+        self.frame_lifetime_stats.fig_overall.update([self.lifetime_stats[member]['overall'][-1] for member in self.lifetime_stats.keys()])
 
         # Reset user allocated resources memory
         self.resources_per_user = {
@@ -459,8 +541,8 @@ class App(tk.Tk):
         self.update_secondary_simulations()
 
         # Update instant stats
-        self.frame_stats.instant_stats.clear()
-        self.frame_results.instant_stats.clear()
+        self.frame_instant_stats.instant_stats.clear()
+        self.frame_allocations.instant_stats.clear()
         instant_stats = np.round(np.array(instant_stats), 1)
 
         cmaps = [
@@ -483,8 +565,8 @@ class App(tk.Tk):
             for column_color_id, column_color in enumerate(column_colors):
                 colors[column_color_id][column_index] = list(column_color)
 
-        self.frame_stats.instant_stats.draw_instant_stats_table(data=instant_stats, colors=colors, **self.config_gui.fig_instant_stats_config)
-        self.frame_results.instant_stats.draw_instant_stats_table(data=instant_stats, colors=colors, **self.config_gui.fig_instant_stats_config)
+        self.frame_instant_stats.instant_stats.draw_instant_stats_table(data=instant_stats, colors=colors, **self.config_gui.fig_instant_stats_config)
+        self.frame_allocations.instant_stats.draw_instant_stats_table(data=instant_stats, colors=colors, **self.config_gui.fig_instant_stats_config)
 
     def get_channel_strength_image(
             self,
