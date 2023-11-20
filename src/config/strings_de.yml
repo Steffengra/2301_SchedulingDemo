@@ -2,7 +2,7 @@
 label_title: Spiel vs. KI!
 label_resource_grid: Ressourcen
 label_instant_stats_title: Ergebnisse
-label_lifetime_stats_title: Gesamtleistung seit Start
+label_lifetime_stats_title: Leistung seit Start
 label_results_title: Letzte Allokationen
 
 stats:
@@ -19,7 +19,7 @@ label_learned_display_names:
 
 button_screen_selector_allocations: Allokationen
 button_screen_selector_instant_stats: Statistiken
-button_screen_selector_lifetime_stats: Total
+button_screen_selector_lifetime_stats: Statistiken
 
 wants: Will
 resources: Ressourcen
