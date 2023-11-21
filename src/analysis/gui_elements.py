@@ -27,6 +27,7 @@ class Scenario(tk.Frame):
             user_image_paths: list[Path],
             base_station_image_path: Path,
             button_callbacks: list,
+            language_button_callbacks: list,
             num_total_resource_slots: int,
             **kwargs,
     ) -> None:
@@ -36,6 +37,7 @@ class Scenario(tk.Frame):
         self.logo_img_height = int(config_gui.label_img_logos_height_scale * window_height)
         self.user_img_height = int(config_gui.label_img_user_height_scale * window_height)
         self.base_station_img_height = int(config_gui.label_img_base_station_height_scale * window_height)
+        self.flag_img_height = int(config_gui.label_img_flag_height_scale * window_height)
 
         # Logo Bar
         self.frame_logos = tk.Frame(master=self, **config_gui.frames_config)
@@ -71,6 +73,17 @@ class Scenario(tk.Frame):
 
         self.label_text_resource_grid = tk.Label(self.subframe_resource_grid, **config_gui.label_resource_grid_text_config)
         self.resource_grid = ResourceGrid(self.subframe_resource_grid, config_gui.label_resource_config, num_total_resource_slots)
+
+        self.button_de = LanguageFlagButton(
+            flag_image=config_gui.flag_images[0],
+            flag_image_img_height=self.flag_img_height,
+            button_callback=language_button_callbacks[0],
+        )
+        self.button_en = LanguageFlagButton(
+            flag_image=config_gui.flag_images[1],
+            flag_image_img_height=self.flag_img_height,
+            button_callback=language_button_callbacks[1],
+        )
 
         self._place_items()
 
@@ -122,6 +135,9 @@ class Scenario(tk.Frame):
         self.label_text_resource_grid.pack(side=tk.TOP, pady=10)
         self.resource_grid.place()
 
+        self.button_de.place(relx=0.0, rely=0.9)
+        self.button_en.place(relx=0.06, rely=0.9)
+
 
 class UserFrame(tk.Frame):
     """
@@ -168,6 +184,40 @@ class UserFrame(tk.Frame):
         self.label_user_img.pack(pady=10)
         self.label_user_text_wants.pack()
         self.label_user_text_channel_strength.pack()
+
+
+class LanguageFlagButton(tk.Frame):
+
+    def __init__(
+            self,
+            flag_image: Path,
+            flag_image_img_height: int,
+            button_callback,
+            **kwargs,
+    ) -> None:
+
+        super().__init__(**kwargs)
+
+        self.flag_image = Image.open(flag_image)
+        self.flag_image = self.flag_image.resize((
+            get_width_rescale_constant_aspect_ratio(self.flag_image, flag_image_img_height),
+            flag_image_img_height,
+        ))
+        self.flag_tk_image = ImageTk.PhotoImage(self.flag_image)
+        self.label_flag_img = tk.Label(
+            self,
+            image=self.flag_tk_image,
+            bg='white',
+        )
+        self.label_flag_img.bind('<Button-1>', button_callback)
+
+        self._place_items()
+
+    def _place_items(
+            self,
+    ) -> None:
+
+        self.label_flag_img.pack()
 
 
 class BaseStationFrame(tk.Frame):
@@ -320,7 +370,7 @@ class ScreenAllocations(tk.Frame):
         # Frames to hold one resource grid for each scheduler
         self.subframes_allocations = {
             allocator_name: tk.Frame(master=self.subframe_allocations, **config_gui.frames_config)
-            for allocator_name in config_gui.allocator_names
+            for allocator_name in config_gui.allocator_names_static
         }
 
         # Resource Grids for each scheduler
@@ -333,10 +383,10 @@ class ScreenAllocations(tk.Frame):
             for allocator_name, allocator_subframe in self.subframes_allocations.items()
         }
         # Titles for each grid
-        self.labels_resource_grids_title = {
+        self.labels_resource_grids_title = [
             tk.Label(allocator_subframe, text=allocator_name, **config_gui.label_resource_grid_title_config)
             for allocator_name, allocator_subframe in self.subframes_allocations.items()
-        }
+        ]
 
         # Frame to hold instant statistics for the last allocation
         self.frame_instant_stats = tk.Frame(master=self, **config_gui.frames_config)
@@ -585,7 +635,7 @@ class FigInstantStatsTable:
         if not colors:
             colors = [['white']*4]*4
 
-        table_instant_stats = self.ax.table(
+        self.table_instant_stats = self.ax.table(
             cellText=data,
             cellColours=colors,
             colLabels=column_labels,
@@ -593,10 +643,13 @@ class FigInstantStatsTable:
             rowLoc='right',
             loc='center',
         )
-        table_instant_stats.auto_set_font_size(False)
-        table_instant_stats.set_fontsize(font_size)
-        # table_instant_stats.auto_set_column_width(range(len(colors)+1))
-        table_instant_stats.scale(xscale=1.0, yscale=1.9)  # scale cell boundaries
+        self.table_instant_stats.auto_set_font_size(False)
+        self.table_instant_stats.set_fontsize(font_size)
+        self.table_instant_stats.scale(xscale=1.0, yscale=1.9)  # scale cell boundaries
+
+        # (0, x), x in 0, ... -> transmit, fairness, ...
+        # (x, -1), x in 1, ... -> YOU, AI: ...
+        # table_instant_stats._cells[(1, -1)]._text.set_text('test')
 
         self.canvas.draw()
 

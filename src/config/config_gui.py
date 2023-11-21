@@ -59,6 +59,7 @@ class ConfigGUI:
         self.label_img_user_height_scale = 0.1
         self.label_img_users_border_width = 15
         self.label_img_base_station_height_scale = 0.25
+        self.label_img_flag_height_scale = 0.1
 
         self.channel_strength_indicator_imgs = [
             'bars_low_alt.png',
@@ -107,6 +108,11 @@ class ConfigGUI:
             'mixed': load_model(Path(self.models_path, 'mixed', 'policy_snap_1.020')),
         }
 
+        self.flag_images = [
+            Path(self.project_root_path, 'src', 'analysis', 'img', 'flag_DE.png'),
+            Path(self.project_root_path, 'src', 'analysis', 'img', 'flag_EN.png'),
+        ]
+
         self._post_init()
 
     def _pre_init(
@@ -122,9 +128,16 @@ class ConfigGUI:
             self,
     ) -> None:
 
-        with open(Path(self.project_root_path, 'src', 'config', self._strings_file), 'r') as file:
-            self.strings = yaml.safe_load(file)
         self.set_strings()
+
+        self.allocator_names_static = [self.own_allocation_display_name] + list(self.learned_agents_display_names.values())  # static once loaded
+        self.learned_agents_display_names_static = self.strings['label_learned_display_names']
+
+        self.set_config_dicts()
+
+    def set_config_dicts(
+            self,
+    ) -> None:
 
         self.button_screen_selector_config = {
             'font': self.button_screen_selector_font,
@@ -242,7 +255,7 @@ class ConfigGUI:
             # 'borderwidth': 2,
         }
 
-        self.allocator_names = [self.own_allocation_display_name] + list(self.learned_agents_display_names.values())
+        self.allocator_names = [self.own_allocation_display_name] + list(self.learned_agents_display_names.values())  # static once loaded
 
         self.fig_instant_stats_config = {
             'column_labels': self.stat_names,
@@ -289,6 +302,9 @@ class ConfigGUI:
     def set_strings(
             self,
     ) -> None:
+
+        with open(Path(self.project_root_path, 'src', 'config', self._strings_file), 'r') as file:
+            self.strings = yaml.safe_load(file)
 
         self.button_screen_selector_allocations_text = self.strings['button_screen_selector_allocations']
         self.button_screen_selector_instant_stats_text = self.strings['button_screen_selector_instant_stats']

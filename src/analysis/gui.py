@@ -172,6 +172,10 @@ class App(tk.Tk):
                 lambda event: self.allocate_resource(user_id=2),
                 lambda event: self.allocate_resource(user_id=3),
             ],
+            language_button_callbacks=[
+                lambda event: self.change_language('DE'),
+                lambda event: self.change_language('EN'),
+            ],
             num_total_resource_slots=self.config.num_total_resource_slots,
             **self.config_gui.frames_config,
         )
@@ -374,7 +378,7 @@ class App(tk.Tk):
         # Reset last allocation indicator
         empty_allocation = {ue: 0 for ue in range(sum(self.config.num_users.values()))}
         empty_allocation_color_dict = {ue: 'white' for ue in range(sum(self.config.num_users.values()))}
-        for allocator in self.config_gui.allocator_names:
+        for allocator in self.config_gui.allocator_names_static:
             self.frame_allocations.resource_grids[allocator].fill(
                 allocation=empty_allocation,
                 color_dict=empty_allocation_color_dict,
@@ -407,6 +411,8 @@ class App(tk.Tk):
             self.rig_sim_main_state(state=rigged_state)
             self.update_user_text_labels()
             self.update_secondary_simulations()
+
+        self.change_language('DE')
 
     def allocate_resource(
             self,
@@ -454,7 +460,7 @@ class App(tk.Tk):
         action = action.astype('float32')
 
         # Fill the small allocation resource grid with user allocation
-        self.frame_allocations.resource_grids[self.config_gui.allocator_names[0]].fill(
+        self.frame_allocations.resource_grids[self.config_gui.allocator_names_static[0]].fill(
             allocation=self.get_allocated_slots(percentage_allocation_solution=action, sim=self.sim_main),
             color_dict=self.config_gui.user_colors,
         )
@@ -487,7 +493,7 @@ class App(tk.Tk):
             action = learner.call(self.secondary_simulations[learner_name].get_state()[np.newaxis]).numpy().squeeze()
 
             # Fill the small allocation resource grid with user allocation
-            self.frame_allocations.resource_grids[self.config_gui.learned_agents_display_names[learner_name]].fill(
+            self.frame_allocations.resource_grids[self.config_gui.learned_agents_display_names_static[learner_name]].fill(
                 allocation=self.get_allocated_slots(percentage_allocation_solution=action, sim=self.secondary_simulations[learner_name]),
                 color_dict=self.config_gui.user_colors,
             )
@@ -589,6 +595,63 @@ class App(tk.Tk):
 
         raise ValueError('Unexpected channel strength')
 
+    def change_language(
+            self,
+            language,
+    ) -> None:
+
+        if language == 'DE':
+            self.config_gui._strings_file = 'strings_de.yml'
+            self.config_gui.set_strings()
+            self.config_gui.set_config_dicts()
+
+        elif language == 'EN':
+            self.config_gui._strings_file = 'strings_en.yml'
+            self.config_gui.set_strings()
+            self.config_gui.set_config_dicts()
+
+        else:
+            raise ValueError(f'unknown language {language}')
+
+
+        # update scenario
+        self.frame_scenario.label_title.configure(text=self.config_gui.label_title_text)
+        self.update_user_text_labels()
+        self.frame_scenario.label_text_resource_grid.configure(text=self.config_gui.label_resource_grid_text)
+
+        # update buttons
+        self.frame_screen_selector.screen_selector_button_lifetime_stats.configure(text=self.config_gui.button_screen_selector_lifetime_stats_text)
+        self.frame_screen_selector.screen_selector_button_allocations.configure(text=self.config_gui.button_screen_selector_allocations_text)
+        self.frame_screen_selector.screen_selector_button_instant_stats.configure(text=self.config_gui.button_screen_selector_instant_stats_text)
+
+        # update screen allocations
+        self.frame_allocations.label_results_title.configure(text=self.config_gui.label_results_title_text)
+        for allocator_name, label_resource_grid in zip(self.config_gui.allocator_names, self.frame_allocations.labels_resource_grids_title):
+            label_resource_grid.configure(text=allocator_name)
+        self.frame_allocations.label_instant_stats_title.configure(text=self.config_gui.label_instant_stats_title_text)
+
+        # rename instant stats table
+        cells = self.frame_allocations.instant_stats.table_instant_stats._cells
+        for celL_index, cell_id in enumerate([(1, -1), (2, -1), (3, -1), (4, -1)]):
+            cells[cell_id]._text.set_text(self.config_gui.allocator_names[celL_index])
+
+        for cell_index, cell_id in enumerate([(0, 0), (0, 1), (0, 2), (0, 3)]):
+            cells[cell_id]._text.set_text(self.config_gui.strings['stats'][cell_index])
+
+        self.frame_allocations.instant_stats.canvas.draw()
+
+        # rename frame lifetime stats
+        self.frame_lifetime_stats.label_title.configure(text=self.config_gui.label_lifetime_stats_title_text)
+
+        for fig_id, fig in enumerate([self.frame_lifetime_stats.fig_throughput, self.frame_lifetime_stats.fig_fairness, self.frame_lifetime_stats.fig_deaths, self.frame_lifetime_stats.fig_overall]):
+            fig_title = self.config_gui.strings['stats'][fig_id]
+            fig.column_labels = self.config_gui.allocator_names
+            fig.ax.set_yticks(range(4), reversed(fig.column_labels), fontsize=fig.font_size)
+            fig.ax.set_title(fig_title)
+            fig.title = fig_title
+            fig.canvas.draw()
+
+
     def update_user_text_labels(
             self,
     ) -> None:
@@ -610,7 +673,6 @@ class App(tk.Tk):
         # Channel Strength
         for label_text_user_id, frame_user in enumerate(self.frame_scenario.frames_users):
             channel_strength = self.sim_main.users[label_text_user_id].power_gain
-            text = 'Channel: '
             text = f'{self.config_gui.string_channel}: '
             frame_user.label_user_text_channel_strength.configure(
                 text=text,
