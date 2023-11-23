@@ -81,8 +81,8 @@ class ConfigGUI:
         self.label_resource_font = ('Arial', int(global_font_scale * 50))
         self.button_screen_selector_font = ('Arial', int(global_font_scale * 25))
         self.button_action_font = ('Arial', int(global_font_scale * 25))
-        self.table_instant_stats_font_size = int(global_font_scale * 11)
-        self.fig_lifetime_stats_font_size = int(global_font_scale * 11)
+        self.table_instant_stats_font_size = int(global_font_scale * 13)
+        self.fig_lifetime_stats_font_size = int(global_font_scale * 13)
         self.label_resource_grid_title_font = ('Arial', int(global_font_scale * 15))
 
         # colors
@@ -199,7 +199,7 @@ class ConfigGUI:
 
         self.label_resource_grid_title_config = {
             'font': self.label_resource_grid_title_font,
-            'height': 2,
+            'height': 3,
             'wraplength': 100,
             'bg': 'white',
         }
