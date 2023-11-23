@@ -18,7 +18,6 @@ label_learned_display_names:
   mixed: 'AI: Max Overall'
 
 button_screen_selector_allocations: Allocations
-button_screen_selector_instant_stats: Statistics
 button_screen_selector_lifetime_stats: Statistics
 
 wants: Wants

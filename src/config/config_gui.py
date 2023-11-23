@@ -28,6 +28,13 @@ class ConfigGUI:
 
         global_font_scale = 1.0  # scales fonts and elements that scale with font size, e.g., boxes
 
+        self.rigged_start_states = [  # [[user0jobsize, user0powergain], [user1jobsize, user1powergain], ...]
+            [[3, 9], [4, 1], [1, 1], [3, 16]],
+            [[5, 16], [7, 9], [0, 1], [5, 1]],
+            [[3, 16], [6, 9], [3, 1], [0, 4]],
+        ]
+
+        # images
         self.logos = [
             'unilogo.png',
             'ANT.png',
@@ -35,66 +42,53 @@ class ConfigGUI:
             'momentum.jpg',
             'FunKI_Logo_final_4C.png',
         ]
-        self.label_img_logos_height_scale = 0.07
-
-        self.rigged_start_states = [  # [[user0jobsize, user0powergain], [user1jobsize, user1powergain], ...]
-            [[3, 9], [4, 1], [1, 1], [3, 16]],
-            [[5, 16], [7, 9], [0, 1], [5, 1]],
-            [[3, 16], [6, 9], [3, 1], [0, 4]],
-        ]
-
-        # -----------------------------------------------------------
-
-        self.label_title_font = ('Arial', int(global_font_scale * 60))
-
-        self.label_user_font = ('Arial', int(global_font_scale * 25))
         self.user_images = [
             '1.png',
             '2.png',
             '3.png',
             'whambulance.png',
         ]
-        self.base_station_image = 'base_station.png'
-
-        self.label_img_user_height_scale = 0.1
-        self.label_img_users_border_width = 15
-        self.label_img_base_station_height_scale = 0.25
-        self.label_img_flag_height_scale = 0.1
-
         self.channel_strength_indicator_imgs = [
             'bars_low_alt.png',
             'bars_medlow_alt.png',
             'bars_medhigh_alt.png',
             'bars_high.png',
         ]
+        self.base_station_image = 'base_station.png'
+        self.button_countdown_img = 'stopwatch2.png'
+        self.button_auto_img = 'robot2.png'
+        self.button_reset_img = 'reset2.png'
+        self.flag_images = [
+            Path(self.project_root_path, 'src', 'analysis', 'img', 'flag_DE.png'),
+            Path(self.project_root_path, 'src', 'analysis', 'img', 'flag_EN.png'),
+        ]
 
-        self.label_resource_font = ('Arial', int(global_font_scale * 50))
+        self.label_img_logos_height_scale = 0.07
+        self.label_img_user_height_scale = 0.1
+        self.label_img_users_border_width = 15
+        self.label_img_base_station_height_scale = 0.25
+        self.label_img_flag_height_scale = 0.1
+        self.label_resource_small_scaling: float = 0.5
+        self.button_countdown_img_scale = 0.045
+
         self.label_resource_width = 3  # relative to font size
         self.label_resource_height = 1  # relative to font size
         self.label_resource_border_width = 2
 
+        # fonts
+        self.label_title_font = ('Arial', int(global_font_scale * 60))
+        self.label_user_font = ('Arial', int(global_font_scale * 25))
+        self.label_resource_font = ('Arial', int(global_font_scale * 50))
         self.button_screen_selector_font = ('Arial', int(global_font_scale * 25))
         self.button_action_font = ('Arial', int(global_font_scale * 25))
-
         self.table_instant_stats_font_size = int(global_font_scale * 11)
-
         self.fig_lifetime_stats_font_size = int(global_font_scale * 11)
-        self.fig_lifetime_stats_bar_color = self.cp3['blue3']
+        self.label_resource_grid_title_font = ('Arial', int(global_font_scale * 15))
+
+        # colors
         self.fig_lifetime_stats_bar_colors_positive = [self.cp3['blue3'], self.cp3['blue3']]
         self.fig_lifetime_stats_bar_colors_negative = [self.cp3['red3'], self.cp3['red3']]
-        self.fig_lifetime_stats_color_gradient = [self.cp3['red2'], self.cp3['blue3'], self.cp3['blue2']]
-
-        self.label_resource_grid_title_font = ('Arial', int(global_font_scale * 15))
-        self.label_resource_small_scaling: float = 0.5
-
-        self.button_countdown_img = 'stopwatch2.png'
-        self.button_countdown_img_scale = 0.045
-
-        self.button_auto_img = 'robot2.png'
-        self.button_reset_img = 'reset2.png'
-
-        self.countdown_reset_value_seconds: int = 10
-
+        self.table_instant_stats_color_gradient = [self.cp3['red2'], self.cp3['blue3'], self.cp3['blue2']]
         self.user_colors = {
             0: self.cp3['blue1'],
             1: self.cp3['blue2'],
@@ -102,16 +96,13 @@ class ConfigGUI:
             3: self.cp3['red2'],
         }
 
+        self.countdown_reset_value_seconds: int = 10
+
         self.learned_agents: dict = {
             'sumrate': load_model(Path(self.models_path, 'max_sumrate', 'policy')),
             'fairness': load_model(Path(self.models_path, 'fairness', 'policy_snap_0.914')),
             'mixed': load_model(Path(self.models_path, 'mixed', 'policy_snap_1.020')),
         }
-
-        self.flag_images = [
-            Path(self.project_root_path, 'src', 'analysis', 'img', 'flag_DE.png'),
-            Path(self.project_root_path, 'src', 'analysis', 'img', 'flag_EN.png'),
-        ]
 
         self._post_init()
 
@@ -139,6 +130,9 @@ class ConfigGUI:
             self,
     ) -> None:
 
+        self.allocator_names = [self.own_allocation_display_name] + list(self.learned_agents_display_names.values())
+
+        # buttons
         self.button_screen_selector_config = {
             'font': self.button_screen_selector_font,
             'width': 1,
@@ -160,10 +154,6 @@ class ConfigGUI:
             **self.button_screen_selector_config,
         }
 
-        self.button_screen_selector_instant_stats_config = {
-            'text': self.button_screen_selector_instant_stats_text,
-            **self.button_screen_selector_config,
-        }
         self.button_screen_selector_lifetime_stats_config = {
             'text': self.button_screen_selector_lifetime_stats_text,
             **self.button_screen_selector_config,
@@ -184,6 +174,7 @@ class ConfigGUI:
             **self.button_action_config,
         }
 
+        # labels
         self.labels_config = {
             'font': self.label_user_font,
             'bg': 'white',
@@ -197,6 +188,7 @@ class ConfigGUI:
             'borderwidth': self.label_resource_border_width,
             'bg': 'white',
         }
+
         self.label_resource_small_config = self.label_resource_config.copy()
         self.label_resource_small_config['font'] = (self.label_resource_font[0], int(self.label_resource_small_scaling * self.label_resource_font[1]))
 
@@ -249,13 +241,12 @@ class ConfigGUI:
             'bg': 'white',
         }
 
+        # frames
         self.frames_config = {
             'bg': 'white',
             # 'relief': 'solid',
             # 'borderwidth': 2,
         }
-
-        self.allocator_names = [self.own_allocation_display_name] + list(self.learned_agents_display_names.values())  # static once loaded
 
         self.fig_instant_stats_config = {
             'column_labels': self.stat_names,
@@ -263,41 +254,41 @@ class ConfigGUI:
             'font_size': self.table_instant_stats_font_size,
         }
 
-        self.fig_lifetime_stats_config = {
-            'column_labels': self.allocator_names,
-            'font_size': self.fig_lifetime_stats_font_size,
-            'bar_color': self.fig_lifetime_stats_bar_color,
-        }
         self.fig_lifetime_stats_bars_config = {
             'column_labels': self.allocator_names,
             'font_size': self.fig_lifetime_stats_font_size,
         }
+
         self.fig_lifetime_stats_bars_throughput_config = {
             'title': self.strings['stats'][0],
             'bar_colors': self.fig_lifetime_stats_bar_colors_positive,
             'xlim_max_initial': 100,
             **self.fig_lifetime_stats_bars_config,
         }
+
         self.fig_lifetime_stats_bars_fairness_config = {
             'title': self.strings['stats'][1],
             'bar_colors': self.fig_lifetime_stats_bar_colors_positive,
             'xlim_max_initial': 4,
             **self.fig_lifetime_stats_bars_config,
         }
+
         self.fig_lifetime_stats_bars_deaths_config = {
             'title': self.strings['stats'][2],
             'bar_colors': self.fig_lifetime_stats_bar_colors_negative,
             'xlim_max_initial': 4,
             **self.fig_lifetime_stats_bars_config,
         }
+
         self.fig_lifetime_stats_bars_overall_config = {
             'title': self.strings['stats'][3],
             'bar_colors': self.fig_lifetime_stats_bar_colors_positive,
             'xlim_max_initial': 4,
             **self.fig_lifetime_stats_bars_config,
         }
-        self.fig_lifetime_stats_gradient_cmap = LinearSegmentedColormap.from_list('', self.fig_lifetime_stats_color_gradient)
-        self.fig_lifetime_stats_gradient_cmap_reversed = LinearSegmentedColormap.from_list('', list(reversed(self.fig_lifetime_stats_color_gradient)))
+
+        self.fig_lifetime_stats_gradient_cmap = LinearSegmentedColormap.from_list('', self.table_instant_stats_color_gradient)
+        self.fig_lifetime_stats_gradient_cmap_reversed = LinearSegmentedColormap.from_list('', list(reversed(self.table_instant_stats_color_gradient)))
 
     def set_strings(
             self,
@@ -307,7 +298,6 @@ class ConfigGUI:
             self.strings = yaml.safe_load(file)
 
         self.button_screen_selector_allocations_text = self.strings['button_screen_selector_allocations']
-        self.button_screen_selector_instant_stats_text = self.strings['button_screen_selector_instant_stats']
         self.button_screen_selector_lifetime_stats_text = self.strings['button_screen_selector_lifetime_stats']
 
         self.label_title_text = self.strings['label_title']

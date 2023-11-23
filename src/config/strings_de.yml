@@ -18,7 +18,6 @@ label_learned_display_names:
   mixed: 'KI: Max Gesamt'
 
 button_screen_selector_allocations: Allokationen
-button_screen_selector_instant_stats: Statistiken
 button_screen_selector_lifetime_stats: Statistiken
 
 wants: Will
