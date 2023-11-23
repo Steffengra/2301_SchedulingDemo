@@ -25,7 +25,6 @@ from src.analysis.gui_elements import (
     ScreenSelector,
     ScreenActionButtons,
     ScreenAllocations,
-    ScreenInstantStats,
     ScreenLifetimeStats,
 )
 from src.utils.get_width_rescale_constant_aspect_ratio import get_width_rescale_constant_aspect_ratio
@@ -100,9 +99,6 @@ class App(tk.Tk):
                 'timeouts': [],
                 'overall': [],
             }
-
-        # Global for axis scaling
-        self.maximum_reward_achieved = 0.1
 
         # Arithmetic
         self.channel_img_height = int(self.config_gui.label_user_font[1]*1.2)
@@ -211,16 +207,6 @@ class App(tk.Tk):
             **self.config_gui.frames_config,
         )
 
-        # Stats - bottom right hand side of screen, switched via selector buttons
-        self.frame_instant_stats = ScreenInstantStats(
-            master=self,
-            window_height=self.window_height,
-            window_width=self.window_width,
-            config_gui=self.config_gui,
-            pixels_per_inch=self.pixels_per_inch,
-            **self.config_gui.frames_config,
-        )
-
         self.frame_lifetime_stats = ScreenLifetimeStats(
             master=self,
             window_height=self.window_height,
@@ -242,9 +228,6 @@ class App(tk.Tk):
         self.frame_allocations.place(relx=.7, rely=.2)
         self.frame_allocations.pack_propagate(False)
 
-        self.frame_instant_stats.place(relx=.7, rely=0.2)
-        self.frame_instant_stats.pack_propagate(False)
-
         self.frame_lifetime_stats.place(relx=.7, rely=0.2)
         self.frame_lifetime_stats.pack_propagate(False)
 
@@ -255,7 +238,6 @@ class App(tk.Tk):
         # Aggregate button-selectable frames for easier bookkeeping
         self.selectable_frames = {
             'Allocations': self.frame_allocations,
-            'InstantStats': self.frame_instant_stats,
             'LifetimeStats': self.frame_lifetime_stats,
         }
 
@@ -521,8 +503,8 @@ class App(tk.Tk):
         self.update_user_text_labels()
 
         # Calculate new lifetime stats and display them
-        mean_rewards = [np.mean(self.lifetime_stats[member]['overall']) for member in self.lifetime_stats.keys()]
-        self.frame_instant_stats.lifetime_stats.update(values=mean_rewards)
+        # mean_rewards = [np.mean(self.lifetime_stats[member]['overall']) for member in self.lifetime_stats.keys()]
+        # self.frame_instant_stats.lifetime_stats.update(values=mean_rewards)
 
         self.frame_lifetime_stats.fig_throughput.update([self.lifetime_stats[member]['sumrate'][-1] for member in self.lifetime_stats.keys()])
         self.frame_lifetime_stats.fig_fairness.update([self.lifetime_stats[member]['fairness'][-1] for member in self.lifetime_stats.keys()])
@@ -547,7 +529,6 @@ class App(tk.Tk):
         self.update_secondary_simulations()
 
         # Update instant stats
-        self.frame_instant_stats.instant_stats.clear()
         self.frame_allocations.instant_stats.clear()
         instant_stats = np.round(np.array(instant_stats), 1)
 
@@ -571,7 +552,6 @@ class App(tk.Tk):
             for column_color_id, column_color in enumerate(column_colors):
                 colors[column_color_id][column_index] = list(column_color)
 
-        self.frame_instant_stats.instant_stats.draw_instant_stats_table(data=instant_stats, colors=colors, **self.config_gui.fig_instant_stats_config)
         self.frame_allocations.instant_stats.draw_instant_stats_table(data=instant_stats, colors=colors, **self.config_gui.fig_instant_stats_config)
 
     def get_channel_strength_image(
@@ -622,7 +602,6 @@ class App(tk.Tk):
         # update buttons
         self.frame_screen_selector.screen_selector_button_lifetime_stats.configure(text=self.config_gui.button_screen_selector_lifetime_stats_text)
         self.frame_screen_selector.screen_selector_button_allocations.configure(text=self.config_gui.button_screen_selector_allocations_text)
-        self.frame_screen_selector.screen_selector_button_instant_stats.configure(text=self.config_gui.button_screen_selector_instant_stats_text)
 
         # update screen allocations
         self.frame_allocations.label_results_title.configure(text=self.config_gui.label_results_title_text)

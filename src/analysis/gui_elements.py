@@ -276,11 +276,6 @@ class ScreenSelector(tk.Frame):
             command=button_commands[0],
             **config_gui.button_screen_selector_allocations_config,
         )
-        self.screen_selector_button_instant_stats = tk.Button(
-            self,
-            command=button_commands[1],
-            **config_gui.button_screen_selector_instant_stats_config,
-        )
         self.screen_selector_button_lifetime_stats = tk.Button(
             self,
             command=button_commands[2],
@@ -294,7 +289,6 @@ class ScreenSelector(tk.Frame):
     ) -> None:
 
         self.screen_selector_button_allocations.pack(side=tk.LEFT, expand=True, fill=tk.BOTH)
-        # self.screen_selector_button_instant_stats.pack(side=tk.LEFT, expand=True, fill=tk.BOTH)
         self.screen_selector_button_lifetime_stats.pack(side=tk.LEFT, expand=True, fill=tk.BOTH)
 
 
@@ -367,6 +361,7 @@ class ScreenAllocations(tk.Frame):
 
         # Title label in allocations frame
         self.label_results_title = tk.Label(self.frame_allocations, **config_gui.label_results_title_config)
+
         # Frames to hold one resource grid for each scheduler
         self.subframes_allocations = {
             allocator_name: tk.Frame(master=self.subframe_allocations, **config_gui.frames_config)
@@ -411,50 +406,6 @@ class ScreenAllocations(tk.Frame):
             resource_grid.place()
         for label_resource_grid_title in self.labels_resource_grids_title:
             label_resource_grid_title.pack(side=tk.TOP, expand=True, fill=tk.BOTH)
-
-        self.label_instant_stats_title.pack()
-        self.instant_stats.place()
-
-
-class ScreenInstantStats(tk.Frame):
-    """
-    One choice of frame for the right hand side of screen. Holds detailed information about the last allocation.
-    """
-
-    def __init__(
-            self,
-            window_width: int,
-            window_height: int,
-            config_gui: 'src.config.config_gui.ConfigGUI',
-            pixels_per_inch: int,
-            **kwargs,
-    ) -> None:
-
-        super().__init__(width=.3 * window_width, height=0.8 * window_height, **kwargs)
-
-        # Frames
-        self.frame_lifetime_stats = tk.Frame(master=self, **config_gui.frames_config)
-        self.frame_instant_stats = tk.Frame(master=self, **config_gui.frames_config)
-
-        # Fig Lifetime Stats
-        self.label_lifetime_stats_title = tk.Label(self.frame_lifetime_stats, **config_gui.label_lifetime_stats_title_config)
-        self.lifetime_stats = FigLifetimeStats(master=self.frame_lifetime_stats, fig_width=0.3*window_width/pixels_per_inch, **config_gui.fig_lifetime_stats_config)
-
-        # Fig Instant Stats
-        self.label_instant_stats_title = tk.Label(self.frame_instant_stats, **config_gui.label_instant_stats_title_config)
-        self.instant_stats = FigInstantStatsTable(self.frame_instant_stats, fig_width=0.3 * window_width / pixels_per_inch, table_config=config_gui.fig_instant_stats_config)
-
-        self._place_items()
-
-    def _place_items(
-            self,
-    ) -> None:
-
-        self.frame_lifetime_stats.pack(expand=True)
-        self.frame_instant_stats.pack(expand=True)
-
-        self.label_lifetime_stats_title.pack()
-        self.lifetime_stats.place()
 
         self.label_instant_stats_title.pack()
         self.instant_stats.place()
@@ -647,21 +598,7 @@ class FigInstantStatsTable:
         self.table_instant_stats.set_fontsize(font_size)
         self.table_instant_stats.scale(xscale=1.0, yscale=1.9)  # scale cell boundaries
 
-        # (0, x), x in 0, ... -> transmit, fairness, ...
-        # (x, -1), x in 1, ... -> YOU, AI: ...
-        # table_instant_stats._cells[(1, -1)]._text.set_text('test')
-
         self.canvas.draw()
-
-
-class FigInstantStatsBars:
-    """Figure displays bar charts for one particular metric"""
-
-    def __init__(
-            self,
-    ) -> None:
-
-        pass
 
 
 class FigLifetimeStatsBars:
