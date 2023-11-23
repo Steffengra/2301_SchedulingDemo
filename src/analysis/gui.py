@@ -367,9 +367,7 @@ class App(tk.Tk):
             )
 
         # reset instant stats
-        self.frame_instant_stats.instant_stats.clear()
         self.frame_allocations.instant_stats.clear()
-        self.frame_instant_stats.instant_stats.draw_instant_stats_table(data=np.array([[0.0] * 4] * 4), **self.config_gui.fig_instant_stats_config)
         self.frame_allocations.instant_stats.draw_instant_stats_table(data=np.array([[0.0] * 4] * 4), **self.config_gui.fig_instant_stats_config)
 
         # Reset lifetime stats
@@ -380,7 +378,6 @@ class App(tk.Tk):
                 'timeouts': [],
                 'overall': [],
             }
-        self.frame_instant_stats.lifetime_stats.update(values=[0] * (len(self.config_gui.learned_agents_display_names) + 1))
         self.frame_lifetime_stats.fig_throughput.clear()
         self.frame_lifetime_stats.fig_fairness.clear()
         self.frame_lifetime_stats.fig_deaths.clear()
@@ -394,7 +391,6 @@ class App(tk.Tk):
             self.update_user_text_labels()
             self.update_secondary_simulations()
 
-        self.change_language('DE')
 
     def allocate_resource(
             self,
