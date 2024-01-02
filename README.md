@@ -12,7 +12,6 @@ Most config parameters, e.g., UI scaling, are controlled in `src/config/config_g
 
 ### How does it work?
 - Users want x number of resources -> allocating more than that has no benefit
-- Resources can be, e.g., time or frequency blocks
 - Users have a channel strength -> One resource at better channel leads to more "throughput"
 - Click on user icon to allocate one resource to this user
 - When all resources are allocated, stats are calculated:
@@ -20,11 +19,16 @@ Most config parameters, e.g., UI scaling, are controlled in `src/config/config_g
   - Fairness (proportional)
   - Deaths (did ambulance get all required resources)
   - Overall (weighted sum of all other stats)
-- Three AI schedulers are implemented for comparison: one tries to maximize throughput, one fairness, one overall. Their results are shown in the center table
-- The lower graph compares all scheduler's average results on the overall metric since starting the demo.
+- Three AI schedulers are implemented for comparison: one tries to maximize throughput, one fairness, one overall.
+- The right hand side features two tabs for results visualization: Allocations and Statistics
+  - The Allocations tab features every schedulers' last allocation as well as the immediate scores achieved
+  - The Statistics screen breaks down each scheduler's performance since the last reset
+- Auto mode allocates at random, just so something is happening on screen.
+- The first few situations after each reset can be rigged to always be deterministic
 
 
 ### Talking points:
+- Resources can be, e.g., time or frequency blocks
 - What is optimization criterion? Data Throughput? Fairness (How do we define that?)?
 Special Objectives, e.g., ambulance traffic? Usually a mixed objective, depending on operator,
 area (urban, non-urban, ...) -> Complex
