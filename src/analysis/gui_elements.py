@@ -593,10 +593,11 @@ class FigInstantStatsTable:
             rowLabels=row_labels,
             rowLoc='right',
             loc='center',
+            # edges='LR',
         )
         self.table_instant_stats.auto_set_font_size(False)
         self.table_instant_stats.set_fontsize(font_size)
-        self.table_instant_stats.scale(xscale=1.0, yscale=1.9)  # scale cell boundaries
+        self.table_instant_stats.scale(xscale=1.2, yscale=1.9)  # scale cell boundaries
 
         self.canvas.draw()
 
@@ -648,7 +649,7 @@ class FigLifetimeStatsBars:
         self.ax.spines['right'].set_visible(False)
         self.ax.spines['bottom'].set_visible(False)
         self.ax.set_xticks([])
-        self.ax.set_title(self.title)
+        self.ax.set_title(self.title, fontsize=self.font_size)
         self.fig.tight_layout()
 
     def place(
