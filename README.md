@@ -83,7 +83,11 @@ To start the demo, you can run the `start.sh`, it will:
 - run the `src/analysis/gui.py`
 
 ### Windows
-Create and activate a python3.10 environment, run  
+Create and activate a python3.10 environment, to install depending libraries run:
 `pip install -r requirements`  
-and run the following programm from the projects root folder:  
+
+Concerning the config files under `src/config/`: 
+ The `*.py.default`-files wont be found, so either remove the `.default` or create your own config from our templates!
+ 
+To start, run the following command from the projects root folder:  
 `python src/analysis/gui.py`
