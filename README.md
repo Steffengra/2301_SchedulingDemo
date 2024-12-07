@@ -6,7 +6,8 @@ currently sum rate, fairness, ambulance timeouts, and mixed performance, by inte
 There is also a countdown challenge mode.
 
 The relevant file to start the GUI demo is `src/analysis/gui.py`.
-Most config parameters, e.g., UI scaling, are controlled in `src/config/config_gui.py`.
+Most config parameters, e.g., UI scaling, are controlled in `src/config/config_gui.py`.  
+Python3.10 is used for this project.
 
 ![screenshot.png](reports/screenshot.png)
 
@@ -65,6 +66,24 @@ root
 ### Known Issues:
 - Fonts will look ugly when using conda. Does not build TrueType fonts (["Why not use something more modern than tk?"](https://github.com/ContinuumIO/anaconda-issues/issues/6833)). Bundling a font file does not seem feasible either.
 
-
-## How to run
+## Quickstart
 This project uses Python3.10.0.  
+### Ubuntu / Linux
+Under Ubuntu you can simply run the `init.sh` file, it will:
+- add the deadsnakes/ppa to your system
+- perform an apt update
+- apt install 
+- - software-properties-common
+- - python3.10 python3.10-venv python3.10-pip
+
+And then download and install the necessary python libraries into a virtual environment.
+
+To start the demo, you can run the `start.sh`, it will:
+- activate the venv created by `init.sh`
+- run the `src/analysis/gui.py`
+
+### Windows
+Create and activate a python3.10 environment, run  
+`pip install -r requirements`  
+and run the following programm from the projects root folder:  
+`python src/analysis/gui.py`
