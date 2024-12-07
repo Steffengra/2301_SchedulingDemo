@@ -66,8 +66,8 @@ root
 ### Known Issues:
 - Fonts will look ugly when using conda. Does not build TrueType fonts (["Why not use something more modern than tk?"](https://github.com/ContinuumIO/anaconda-issues/issues/6833)). Bundling a font file does not seem feasible either.
 
-
 ## Quickstart
+This project uses Python3.10.0.  
 ### Ubuntu / Linux
 Under Ubuntu you can simply run the `init.sh` file, it will:
 - add the deadsnakes/ppa to your system
@@ -87,4 +87,3 @@ Create and activate a python3.10 environment, run
 `pip install -r requirements`  
 and run the following programm from the projects root folder:  
 `python src/analysis/gui.py`
-
