@@ -64,3 +64,7 @@ root
 
 ### Known Issues:
 - Fonts will look ugly when using conda. Does not build TrueType fonts (["Why not use something more modern than tk?"](https://github.com/ContinuumIO/anaconda-issues/issues/6833)). Bundling a font file does not seem feasible either.
+
+
+## How to run
+This project uses Python3.10.0.  
