@@ -1,5 +1,5 @@
 
-# Man vs Machine Resource Scheduling demo
+# 📦 Man vs Machine Resource Scheduling demo
 
 The user can compare themselves to three AI algorithms in optimizing system metrics,
 currently sum rate, fairness, ambulance timeouts, and mixed performance, by intelligent resource scheduling.
@@ -10,7 +10,7 @@ Most config parameters, e.g., UI scaling, are controlled in `src/config/config_g
 
 ![screenshot.png](reports/screenshot.png)
 
-### How does it work?
+## ⚙️ How does it work?
 - Users want x number of resources -> allocating more than that has no benefit
 - Users have a channel strength -> One resource at better channel leads to more "throughput"
 - Click on user icon to allocate one resource to this user
@@ -27,7 +27,7 @@ Most config parameters, e.g., UI scaling, are controlled in `src/config/config_g
 - The first few situations after each reset can be rigged to always be deterministic
 
 
-### Talking points:
+## 💬 Talking points:
 - Resources can be, e.g., time or frequency blocks
 - What is optimization criterion? Data Throughput? Fairness (How do we define that?)?
 Special Objectives, e.g., ambulance traffic? Usually a mixed objective, depending on operator,
@@ -40,12 +40,12 @@ algorithms in practice
 - You can sometimes see the Max Fairness algorithm not even allocate all of its resources and
 still find a strong fairness score. It has found a way to game our performance metric definition.
 
-### Most Important config in `config_gui.py`:
+## 🛠️ Most Important config in `config_gui.py`:
 - Language setting via `self._strings_file`
 - Font scaling via `global_font_scale`
 - Partner Logos via `self.logos`
 
-### Folder Structure:
+## 📂 Project Structure:
 
 ```
 root
@@ -62,5 +62,5 @@ root
 |   +---models          |   learning related
 ```
 
-### Known Issues:
+## ⚠️ Known Issues:
 - Fonts will look ugly when using conda. Does not build TrueType fonts (["Why not use something more modern than tk?"](https://github.com/ContinuumIO/anaconda-issues/issues/6833)). Bundling a font file does not seem feasible either.
