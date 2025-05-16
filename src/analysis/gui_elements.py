@@ -28,6 +28,7 @@ class Scenario(tk.Frame):
             base_station_image_path: Path,
             button_callbacks: list,
             language_button_callbacks: list,
+            tutorial_button_callback,
             num_total_resource_slots: int,
             **kwargs,
     ) -> None:
@@ -85,6 +86,13 @@ class Scenario(tk.Frame):
             button_callback=language_button_callbacks[1],
         )
 
+        self.button_tutorial_frame = tk.Frame()
+        self.label_tutorial_button = tk.Button(
+            self.button_tutorial_frame,
+            command=tutorial_button_callback,
+            **config_gui.button_tutorial_config,
+        )
+
         self._place_items()
 
     def _logo_setup(
@@ -120,6 +128,7 @@ class Scenario(tk.Frame):
             label_img_logo.pack(side=tk.LEFT, padx=10, pady=10)
 
         self.label_title.place(relx=0.02, rely=0.12)
+        self.label_tutorial_button.pack()
 
         self.frames_users[0].place(relx=0.1, rely=0.25)
         self.frames_users[1].place(relx=0.5, rely=0.2)
@@ -135,8 +144,9 @@ class Scenario(tk.Frame):
         self.label_text_resource_grid.pack(side=tk.TOP, pady=10)
         self.resource_grid.place()
 
-        self.button_de.place(relx=0.0, rely=0.9)
+        self.button_de.place(relx=0.00, rely=0.9)
         self.button_en.place(relx=0.06, rely=0.9)
+        self.button_tutorial_frame.place(relx=0.12, rely=0.91)
 
 
 class UserFrame(tk.Frame):

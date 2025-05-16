@@ -63,6 +63,9 @@ class App(tk.Tk):
         # Auto mode toggle
         self.auto_mode_toggle = False
 
+        # tutorial toggle
+        self.tutorial_toggle = False
+
         # Set up sims to evaluate allocations
         self.rigged_start_states = self.config_gui.rigged_start_states.copy()
 
@@ -114,6 +117,13 @@ class App(tk.Tk):
         Set up & position GUI elements from gui_elements.py.
         """
 
+        # load tutorial image for later use
+        self.image_tutorial = Image.open(Path(project_root_path, 'src', 'analysis', 'img', '00_ANTposter_mini.png'))
+        self.tk_image_tutorial = ImageTk.PhotoImage(self.image_tutorial.resize((
+            get_width_rescale_constant_aspect_ratio(self.image_tutorial, int(0.9*self.window_height)),
+            int(0.9*self.window_height),
+        )))
+
         # Load channel strength indicator images for later use
         self.images_channelstrength = [
             Image.open(Path(project_root_path, 'src', 'analysis', 'img', channel_strength_indicator_img))
@@ -153,6 +163,13 @@ class App(tk.Tk):
         self.tk_image_button_reset = ImageTk.PhotoImage(button_reset_image)
         self.config_gui.button_reset_config['image'] = self.tk_image_button_reset
 
+        # tutorial overlay
+        self.frame_tutorial = tk.Frame(
+            master=self,
+            width=.3 * self.window_width, height=0.8 * self.window_height,
+            **self.config_gui.frames_config
+        )
+
         # Scenario - left hand side of the screen
         self.frame_scenario = Scenario(
             master=self,
@@ -172,6 +189,7 @@ class App(tk.Tk):
                 lambda event: self.change_language('DE'),
                 lambda event: self.change_language('EN'),
             ],
+            tutorial_button_callback=self.callback_button_toggle_tutorial,
             num_total_resource_slots=self.config.num_total_resource_slots,
             **self.config_gui.frames_config,
         )
@@ -247,6 +265,18 @@ class App(tk.Tk):
         # Initialize user text labels
         self.update_user_text_labels()
 
+        self.label_tutorial_img = tk.Label(
+            master=self.frame_tutorial,
+            image=self.tk_image_tutorial,
+            bg='white',
+            highlightthickness=15,
+            highlightbackground='black',
+        )
+        self.label_tutorial_img.pack()
+        self.frame_tutorial.place(relx=.3, rely=0.04)
+        # self.frame_tutorial.tkraise()
+
+
     def check_loop(
             self,
     ) -> None:
@@ -296,6 +326,20 @@ class App(tk.Tk):
 
         self.frame_lifetime_stats.tkraise()
         self.separator_vertical.tkraise()
+
+    def callback_button_toggle_tutorial(
+            self,
+    ) -> None:
+        """
+        Toggle tutorial visible/invisible.
+        """
+
+        if self.tutorial_toggle:
+            self.frame_tutorial.lower()
+            self.tutorial_toggle = False
+        else:
+            self.frame_tutorial.tkraise()
+            self.tutorial_toggle = True
 
     def callback_button_timer(
             self,
@@ -577,7 +621,7 @@ class App(tk.Tk):
     ) -> None:
 
         if language == 'DE':
-            self.config_gui._strings_file = 'strings_de.yml'
+            self.config_gui._strings_file = 'strings_de_simple.yml'
             self.config_gui.set_strings()
             self.config_gui.set_config_dicts()
 

@@ -4,9 +4,7 @@ from tkinter import (
     CENTER,
     TOP,
 )
-from pathlib import (
-    Path,
-)
+from pathlib import Path
 
 import yaml
 
@@ -133,6 +131,17 @@ class ConfigGUI:
         self.allocator_names = [self.own_allocation_display_name] + list(self.learned_agents_display_names.values())
 
         # buttons
+
+        self.button_tutorial_config = {
+            'text': '?',
+            'font': self.button_screen_selector_font,
+            'width': 1,
+            'height': 2,
+            'borderwidth': 0,
+            'bg': 'white',
+            'compound': CENTER,
+        }
+
         self.button_screen_selector_config = {
             'font': self.button_screen_selector_font,
             'width': 1,
